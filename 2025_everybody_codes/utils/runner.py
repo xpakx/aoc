@@ -1,11 +1,25 @@
 import inspect
 import re
+import os
+from pathlib import Path
 
 
 class AdventDay:
-    def run(self):
+    def run(
+            self,
+            day: int | None = None,
+            *,
+            test: bool = False,
+    ):
         caller_frame = inspect.currentframe().f_back
         caller_globals = caller_frame.f_globals
+        if not day:
+            full_path = caller_frame.f_code.co_filename
+            filename = os.path.basename(full_path)
+            name_without_ext = os.path.splitext(filename)[0]
+            match = re.search(r'(\d+)$', name_without_ext)
+            if match:
+                day = int(match.group(1))
 
         load_func = caller_globals.get('load')
 
@@ -32,14 +46,8 @@ class AdventDay:
         for number, name, func in tasks:
             print(f"--- Running {name} ---")
             try:
-                load_spec = None
-                if number in loaders:
-                    load_spec = loaders[number]
-                if load_func or load_spec:
-                    if load_spec:
-                        data = load_spec()
-                    else:
-                        data = load_func(number)
+                data = load_data(day, number, load_func, loaders, test)
+                if data:
                     sig = inspect.signature(func)
                     accepts_args = len(sig.parameters) > 0
                     if not accepts_args:
@@ -58,3 +66,28 @@ class AdventDay:
             except FileNotFoundError as e:
                 print("No file found")
                 print(f"Error running {name}: {e}")
+
+
+def load_data(day, number, load_func, loaders, test):
+    loader = load_func
+    if number in loaders:
+        loader = loaders[number]
+    if not loader:
+        return None
+    sig = inspect.signature(loader)
+    if len(sig.parameters) == 0:
+        return loader()
+    first_param = next(iter(sig.parameters.values()))
+    if first_param.annotation is int:
+        return loader(number)
+    if test:
+        url = f"data/day{day}/example{number}"
+        path = Path(url)
+        if not path.exists():
+            url = f"data/day{day}/example"
+    else:
+        url = f"data/day{day}/data{number}"
+        path = Path(url)
+        if not path.exists():
+            url = f"data/day{day}/data"
+    return loader(url)

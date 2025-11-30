@@ -3,8 +3,7 @@ from utils.helpers import transform_steps, clamp, swap
 from utils.runner import AdventDay
 
 
-def load(task: int):
-    filename = f"data/everybody_codes_e2025_q01_p{task}.txt"
+def load(filename):
     [names, instructions] = get_file_instr(filename)
     instructions = transform_steps(instructions)
     return names, instructions
