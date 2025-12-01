@@ -1,5 +1,6 @@
 from utils.loader import get_file
 from utils.runner import AdventDay
+from collections import defaultdict
 
 
 def load(filename):
@@ -15,6 +16,17 @@ def task1(data):
             mentors += 1
         elif c == 'a':
             result += mentors
+    return result
+
+
+def task2(data):
+    result = 0
+    mentors = defaultdict(int)
+    for c in data:
+        if c.isupper():
+            mentors[c.lower()] += 1
+        elif c.islower():
+            result += mentors[c]
     return result
 
 
