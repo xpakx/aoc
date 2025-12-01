@@ -19,5 +19,21 @@ def task1(steps):
     return result
 
 
+def task2(steps):
+    pos = 50
+    result = 0
+    for step in steps:
+        last = pos
+        pos_temp = pos + step[0]*step[1]
+        pos = pos_temp % 100
+        passes = abs(pos_temp - pos) // 100
+        result += passes
+        if pos == 0 and step[0] < 0:
+            result += 1
+        if last == 0 and step[0] < 0:
+            result -= 1
+    return result
+
+
 app = AdventDay()
 app.run()
