@@ -35,5 +35,25 @@ def task1(names, rules):
             return name
 
 
+def task2(names, rules):
+    r = {}
+    for rule in rules:
+        r[rule.first] = rule.to
+    result = 0
+    for j in range(len(names)):
+        name = names[j]
+        correct = True
+        for i in range(len(name)-1):
+            curr_letter = name[i]
+            next_letter = name[i+1]
+            candidates = r[curr_letter]
+            if not candidates or next_letter not in candidates:
+                correct = False
+                break
+        if correct:
+            result += j + 1
+    return result
+
+
 app = AdventDay()
 app.run()
