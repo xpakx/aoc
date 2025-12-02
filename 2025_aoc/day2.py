@@ -2,7 +2,6 @@ from utils.loader import get_file
 from utils.parser import parse
 from utils.runner import AdventDay
 from dataclasses import dataclass
-import re
 
 
 @dataclass
@@ -21,8 +20,8 @@ def task1(data):
     for r in data:
         for i in range(r.start, r.end+1):
             num = str(i)
-            test = re.search(r"^(.+)\1$", num)
-            if test:
+            length = len(num)
+            if length % 2 == 0 and num[:length//2] == num[length//2:]:
                 result += i
     return result
 
@@ -32,8 +31,7 @@ def task2(data):
     for r in data:
         for i in range(r.start, r.end+1):
             num = str(i)
-            test = re.search(r"^(.+)\1+$", num)
-            if test:
+            if num in (num + num)[1:-1]:
                 result += i
     return result
 
