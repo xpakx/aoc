@@ -27,5 +27,16 @@ def task1(data):
     return result
 
 
+def task2(data):
+    result = 0
+    for r in data:
+        for i in range(r.start, r.end+1):
+            num = str(i)
+            test = re.search(r"^(.+)\1+$", num)
+            if test:
+                result += i
+    return result
+
+
 app = AdventDay()
 app.run()
