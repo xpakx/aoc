@@ -39,5 +39,25 @@ def task2(data):
     return result
 
 
+def task3(data):
+    nails = max(data)
+    result = 0
+    segments = [[min(i, j), max(i, j)] for i, j in zip(data, data[1:])]
+    for i in range(nails):
+        for j in range(nails):
+            if i == j:
+                continue
+            r = 0
+            seg = [min(i, j)+1, max(i, j)+1]
+            for s in segments:
+                if check_sides(seg, s, nails):
+                    r += 1
+            if seg in segments:
+                r += 1
+            if r > result:
+                result = r
+    return result
+
+
 app = AdventDay()
 app.run()
