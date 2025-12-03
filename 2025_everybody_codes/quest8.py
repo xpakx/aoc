@@ -16,5 +16,28 @@ def task1(data):
     return result
 
 
+def check_sides(s1, s2, nails):
+    if s1[0] == s2[0] or s1[0] == s2[1]:
+        return False
+    if s1[1] == s2[0] or s1[1] == s2[1]:
+        return False
+    s11OnSideA = s1[0] > s2[0] and s1[0] < s2[1]
+    s12nSideA = s1[1] > s2[0] and s1[1] < s2[1]
+    return s11OnSideA != s12nSideA
+
+
+def task2(data):
+    nails = max(data)
+    result = 0
+    segments = []
+    for i, j in zip(data, data[1:]):
+        segment = [min(i, j), max(i, j)]
+        for s in segments:
+            if check_sides(segment, s, nails):
+                result += 1
+        segments.append(segment)
+    return result
+
+
 app = AdventDay()
 app.run()
