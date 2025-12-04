@@ -44,5 +44,24 @@ def task1(map):
     return result
 
 
+def task2(map):
+    result = 0
+    while (True):
+        anything = False
+        for i, line in enumerate(map):
+            for j, elem in enumerate(line):
+                if elem == Tile.paper:
+                    neighbours = [
+                            check_neighbour(map, [i, j], dir) for dir in dirs
+                    ].count(True)
+                    if neighbours < 4:
+                        result += 1
+                        anything = True
+                        map[i][j] = Tile.empty
+        if not anything:
+            break
+    return result
+
+
 app = AdventDay()
 app.run()
