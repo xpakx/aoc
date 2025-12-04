@@ -2,6 +2,7 @@ from utils.loader import get_file
 from utils.runner import AdventDay
 from utils.parser import parse
 from dataclasses import dataclass
+from collections import Counter
 
 
 @dataclass
@@ -87,6 +88,52 @@ def task2(data):
         child[i] = True
         [i1, i2] = parents
         result += elem.common(data[i1]) * elem.common(data[i2])
+    return result
+
+
+def task3(data):
+    child = [False] * len(data)
+    parent_list = [None] * len(data)
+    for i in range(len(data)):
+        elem = data[i]
+        parents = find_parents(data, child, elem)
+        if parents is not None:
+            parent_list[i] = parents
+    print([(p[0]+1, p[1]+1) if p else None for p in parent_list])
+    leaves = []
+    for i in range(len(data)):
+        leaf = True
+        for parents in parent_list:
+            if parents and i in parents:
+                leaf = False
+                break
+        if leaf:
+            leaves.append(i)
+
+    family = [-1] * len(data)
+    for i in leaves:
+        family[i] = i
+        stack = [i]
+        while len(stack) > 0:
+            elem = stack.pop()
+            if family[elem] > 0:
+                a = family[i]
+                for j in range(len(data)):
+                    if family[j] == a:
+                        family[j] = family[elem]
+            family[elem] = family[i]
+            parents = parent_list[elem]
+            if not parents:
+                continue
+            [p1, p2] = parents
+            stack.append(p1)
+            stack.append(p2)
+
+    result = 0
+    cmn = Counter(family).most_common(1)[0][0]
+    for i, fam in enumerate(family):
+        if fam == cmn:
+            result += i+1
     return result
 
 
