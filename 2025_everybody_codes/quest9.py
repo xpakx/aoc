@@ -35,6 +35,13 @@ class Sequence:
         g = self.g_mask & other.g_mask
         return (a | t | c | g).bit_count()
 
+    def parents(self, parent1, parent2):
+        a = self.a_mask & ~(parent1.a_mask | parent2.a_mask)
+        t = self.t_mask & ~(parent1.t_mask | parent2.t_mask)
+        c = self.c_mask & ~(parent1.c_mask | parent2.c_mask)
+        g = self.g_mask & ~(parent1.g_mask | parent2.g_mask)
+        return (a | t | c | g) == 0
+
 
 def load(filename):
     data = get_file(filename)
@@ -47,6 +54,40 @@ def load(filename):
 def task1(data):
     [parent1, parent2, child] = data
     return child.common(parent1) * child.common(parent2)
+
+
+def find_parents(data, child_info, child):
+    for i in range(len(data)):
+        if child_info[i]:
+            continue
+        p1 = data[i]
+        if p1 == child:
+            continue
+        for j in range(len(data)):
+            if child_info[j]:
+                continue
+            p2 = data[j]
+            if p2 == child:
+                continue
+            if p1 == p2:
+                continue
+            if child.parents(p1, p2):
+                return i, j
+    return None
+
+
+def task2(data):
+    result = 0
+    child = [False] * len(data)
+    for i in range(len(data)):
+        elem = data[i]
+        parents = find_parents(data, child, elem)
+        if parents is None:
+            continue
+        child[i] = True
+        [i1, i2] = parents
+        result += elem.common(data[i1]) * elem.common(data[i2])
+    return result
 
 
 app = AdventDay()
