@@ -43,3 +43,36 @@ def get_file_instr(path, *, strip=True, as_int=False,
     if split_second_by:
         b = b.split(split_second_by)
     return [a, b]
+
+
+def get_map(path, enum, *, strip=True, dct=None, empty='.'):
+    if path is None:
+        raise ValueError("Requires a file path")
+
+    with open(path, "r", encoding="utf-8") as f:
+        data = f.read()
+
+    if dct is None:
+        dct = {}
+
+    if empty not in dct:
+        if 'Empty' in enum.__members__:
+            dct[empty] = enum['Empty']
+        elif 'empty' in enum.__members__:
+            dct[empty] = enum['empty']
+
+    default = None
+    if len(enum) == 2:
+        for a in enum:
+            if a != dct[empty]:
+                default = a
+                break
+
+    data = data.splitlines()
+    data = [line.strip() for line in data]
+    result = []
+    for line in data:
+        line = line.strip()
+        line = [dct[chr] if chr in dct else default for chr in line]
+        result.append(line)
+    return result
