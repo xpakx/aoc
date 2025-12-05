@@ -100,5 +100,151 @@ def part2(map, dragon_pos):
     return result
 
 
+class BitBoard:
+    def __init__(self, map):
+        self.sheeps = 0
+        self.walls = 0
+        self.dragon = 0
+        self.width = len(map[0])
+        self.height = len(map)
+        self.size = self.width * self.height
+        self.board_mask = 0
+        for row in map:
+            for tile in row:
+                self.board_mask <<= 1
+                self.board_mask += 1
+                self.sheeps <<= 1
+                if tile == Tile.sheep:
+                    self.sheeps += 1
+                self.walls <<= 1
+                if tile == Tile.wall:
+                    self.walls += 1
+                self.dragon <<= 1
+                if tile == Tile.dragon:
+                    self.dragon += 1
+
+            self.gen_dragon_lookup()
+            self.last_rank_mask = (1 << self.width) - 1
+
+    def gen_dragon_lookup(self):
+        self.dragon_lookup = []
+
+        for i in range(self.size):
+            r = i // self.width
+            c = i % self.width
+
+            mask = 0
+            for dr, dc in moves:
+                nr, nc = r + dr, c + dc
+                if 0 <= nr < self.height and 0 <= nc < self.width:
+                    target_idx = nr * self.width + nc
+                    mask |= (1 << (self.size - 1 - target_idx))
+            self.dragon_lookup.append(mask)
+
+    def gen_sheep_moves(self):
+        return (self.sheeps >> self.width) & self.board_mask & ~(self.dragon & ~self.walls)
+
+    def gen_sheep_promotions(self):
+        return self.sheeps & self.last_rank_mask
+
+    def get_vulnerable_sheep(self):
+        return self.sheeps & ~self.walls
+
+    def gen_dragon_moves(self):
+        dragon_index = self.size - self.dragon.bit_length()
+        return self.dragon_lookup[dragon_index]
+
+    def move_dragon(self, mask):
+        self.dragon = self.dragon ^ mask
+
+    def move_sheep(self, mask):
+        self.sheeps = self.sheeps ^ mask
+
+    def print(self):
+        sheep = self.sheeps
+        dragon = self.dragon
+        walls = self.walls
+        for i in range(self.height):
+            for j in range(self.width):
+                index = (self.height-i-1)*self.width + j
+                if sheep >> index & 1 > 0:
+                    print("S", end="")
+                elif dragon >> index & 1 > 0:
+                    print("D", end="")
+                elif walls >> index & 1 > 0:
+                    print("#", end="")
+                else:
+                    print(".", end="")
+            print()
+
+    def to_algebraic(self, move_mask):
+        if move_mask == 0:
+            return "None"
+        idx = self.size - move_mask.bit_length()
+        row = self.width - (idx // self.width)
+        col = idx % self.width
+        file_char = chr(ord('A') + col)
+        rank_num = self.height - row
+        return f"{file_char}{rank_num}"
+
+
+def print_bin(num):
+    print(''.join(reversed(format(num, '#014b')[2:])))
+
+
+def sheep_move(board, mem):
+    key = (board.dragon, board.sheeps, 0)
+    if key in mem:
+        return mem[key]
+    mem[key] = 0
+    moves = board.gen_sheep_moves()
+    wins = 0
+    if moves == 0:
+        promotions = board.gen_sheep_promotions()
+        if promotions > 0:
+            return 0
+        wins += dragon_move(board, mem)
+
+    while moves:
+        move = moves & (~moves+1)
+        move_map = move ^ (move << board.width)
+        board.move_sheep(move_map)
+        wins += dragon_move(board, mem)
+        board.move_sheep(move_map)
+        moves ^= move
+    mem[key] = wins
+    return wins
+
+
+def dragon_move(board, mem):
+    key = (board.dragon, board.sheeps, 1)
+    if key in mem:
+        return mem[key]
+    mem[key] = 0
+    moves = board.gen_dragon_moves()
+    wins = 0
+    while moves:
+        move = moves & (~moves+1)
+        move_mask = move ^ board.dragon
+        board.move_dragon(move_mask)
+        capture = board.dragon & board.get_vulnerable_sheep()
+        board.move_sheep(capture)
+        if board.sheeps.bit_count() == 0:
+            wins += 1
+        else:
+            wins += sheep_move(board, mem)
+        board.move_sheep(capture)
+        board.move_dragon(move_mask)
+        moves ^= move
+    mem[key] = wins
+    return wins
+
+
+def part3(map, pos):
+    board = BitBoard(map)
+    result = sheep_move(board, {})
+    return result
+
+
 app = AdventDay()
-app.run(test=False)
+app.run()
