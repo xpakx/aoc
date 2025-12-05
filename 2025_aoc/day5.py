@@ -15,6 +15,7 @@ def load(filename):
     nums = [int(n) for n in nums]
     ranges = parse(Range, "{start}-{end}", ranges)
     ranges.sort(key=lambda x: x.start)
+    ranges = join_ranges(ranges)
     return ranges, nums
 
 
@@ -30,7 +31,6 @@ def join_ranges(ranges):
 
 
 def task1(ranges, numbers):
-    ranges = join_ranges(ranges)
     result = 0
     for n in numbers:
         fresh = False
@@ -42,6 +42,13 @@ def task1(ranges, numbers):
                 break
         if fresh:
             result += 1
+    return result
+
+
+def task2(ranges, numbers):
+    result = 0
+    for r in ranges:
+        result += r.end - r.start + 1
     return result
 
 
