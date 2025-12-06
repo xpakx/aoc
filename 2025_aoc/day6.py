@@ -30,7 +30,38 @@ def load1(filename):
     return d
 
 
+def load2(filename):
+    lines = get_file(filename, strip=False)
+    ns = lines[:-1]
+    ops = lines[-1]
+    data = []
+    ln = max([len(x) for x in lines])
+    nums = []
+    op = ' '
+    for i in range(ln):
+        c = []
+        for n in ns:
+            c.append(n[i])
+        cop = ops[i] if i < len(ops) else ' '
+        if cop != ' ':
+            op = cop
+        num = ''.join(c).strip()
+        if num == '':
+            data.append(Entry(nums=nums, op=op))
+            nums = []
+        else:
+            nums.append(int(num))
+    if len(nums) > 0:
+        data.append(Entry(nums=nums, op=op))
+        nums = []
+    return data
+
+
 def task1(data):
+    return sum(entry.result() for entry in data)
+
+
+def task2(data):
     return sum(entry.result() for entry in data)
 
 
