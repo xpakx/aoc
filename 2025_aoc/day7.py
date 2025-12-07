@@ -39,8 +39,19 @@ def task1(data):
                 beam[i] = False
                 beam[i-1] = True
                 beam[i+1] = True
-        print_beam(beam, row)
+        # print_beam(beam, row)
     return result
+
+
+def task2(data):
+    counter = [1 for x in data[0]]
+    for row in reversed(data[1:]):
+        for i in range(len(counter)):
+            current = row[i]
+            if current == Tile.splitter:
+                counter[i] = counter[i-1] + counter[i+1]
+    beam_start = data[0].index(Tile.beam)
+    return counter[beam_start]
 
 
 app = AdventDay()
