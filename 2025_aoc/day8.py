@@ -64,5 +64,41 @@ def task1(data):
     return result
 
 
+# should probably start with fully connected graph
+# and then remove by reversed distance, till
+# finding graph with a single cut point
+def task2(data):
+    points = len(data)
+    circuits = []
+    data = sort_by_dist(data)
+    while True:
+        p1, p2, _ = data.pop()
+        merge = []
+        for num, circuit in enumerate(circuits):
+            if p1 in circuit or p2 in circuit:
+                merge.append(num)
+        added = len(merge) > 0
+        new = set()
+        while len(merge) > 0:
+            to_merge = merge.pop()
+            to_add = circuits[to_merge]
+            circuits[to_merge] = circuits[-1]
+            circuits.pop()
+            new.update(to_add)
+            if p1 not in new:
+                new.add(p1)
+            if p2 not in new:
+                new.add(p2)
+        if len(new) > 0:
+            circuits.append(new)
+        if not added:
+            circuits.append(set([p1, p2]))
+
+        if len(circuits) == 1 and len(circuits[0]) == points:
+            return p1[0] * p2[0]
+
+    return 0
+
+
 app = AdventDay()
 app.run(test=False)
