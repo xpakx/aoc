@@ -53,7 +53,7 @@ class CompressedPoint:
         return CompressedPoint(x=x, y=y, true_x=p.x, true_y=p.y)
 
 
-# TODO: potentially some inputs might need step=2, but 
+# TODO: potentially some inputs might need step=2, but
 # it works that way
 def compress(points):
     all_x = set()
@@ -158,17 +158,20 @@ def fill_map(map):
             points.append((y, x+1))
 
 
-# TODO: check only borders
-def check_points(p1, p2, map):
-    start_x = min(p1.x, p2.x)
-    end_x = max(p1.x, p2.x)
-    start_y = min(p1.y, p2.y)
-    end_y = max(p1.y, p2.y)
-    for y in range(start_y, end_y + 1):
-        for x in range(start_x, end_x + 1):
-            if not map[y][x]:
-                return False
-    return True
+def check_points(p1, p2, prefix_map):
+    x1, x2 = min(p1.x, p2.x), max(p1.x, p2.x)
+    y1, y2 = min(p1.y, p2.y), max(p1.y, p2.y)
+
+    width = (x2 - x1) + 1
+    height = (y2 - y1) + 1
+    expected_area = width * height
+
+    total_sum = (prefix_map[y2+1][x2+1]
+                 - prefix_map[y1][x2+1]
+                 - prefix_map[y2+1][x1]
+                 + prefix_map[y1][x1])
+
+    return total_sum == expected_area
 
 
 def validate_constraints(points):
@@ -193,6 +196,19 @@ def validate_constraints(points):
     return True
 
 
+def create_prefix_sum(bool_map):
+    rows = len(bool_map)
+    cols = len(bool_map[0])
+    p = [[0 for _ in range(cols + 1)] for _ in range(rows + 1)]
+
+    for y in range(rows):
+        for x in range(cols):
+            val = 1 if bool_map[y][x] else 0
+            p[y+1][x+1] = val + p[y][x+1] + p[y+1][x] - p[y][x]
+
+    return p
+
+
 def task2(data):
     points = to_sorted_grid(data)
     compressed = compress(points)
@@ -210,11 +226,12 @@ def task2(data):
         p2 = segment[1]
         add_segment(segment_map, segment)
     fill_map(segment_map)
+    prefix_map = create_prefix_sum(segment_map)
     # print_map(compressed, segment_map)
     print(len(segments))
     max = 0
     for p1, p2, in combinations(pts, 2):
-        if not check_points(p1, p2, segment_map):
+        if not check_points(p1, p2, prefix_map):
             continue
         area = get_area_compressed(p1, p2)
         if area > max:
