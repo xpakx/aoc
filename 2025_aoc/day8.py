@@ -1,5 +1,7 @@
 from utils.loader import get_file
 from utils.runner import AdventDay
+from itertools import combinations
+import math
 
 
 def load(filename):
@@ -18,14 +20,8 @@ def distance_3d(p1, p2):
 
 
 def sort_by_dist(data, reversed=True):
-    a = set()
-    for p1 in data:
-        for p2 in data:
-            if p1 >= p2:
-                continue
-            r = (p1, p2, distance_3d(p1, p2))
-            a.add(r)
-    a = list(a)
+    a = combinations(data, 2)
+    a = [(p1, p2, distance_3d(p1, p2)) for p1, p2 in a]
     a.sort(key=lambda x: x[2], reverse=reversed)
     return a
 
@@ -56,17 +52,11 @@ def task1(data):
         if not added:
             circuits.append(set([p1, p2]))
 
-    lens = (len(c) for c in circuits)
-    to_calc = sorted(lens)[::-1][:3]
-    result = 1
-    for i in to_calc:
-        result *= i
-    return result
+    lens = [len(c) for c in circuits]
+    lens.sort(reverse=True)
+    return math.prod(lens[:3])
 
 
-# should probably start with fully connected graph
-# and then remove by reversed distance, till
-# finding graph with a single cut point
 def task2(data):
     points = len(data)
     circuits = []
