@@ -3,6 +3,8 @@ import re
 import os
 from pathlib import Path
 from typing import Callable, Any
+import time
+from .term import Term
 
 
 class AdventDay:
@@ -33,6 +35,7 @@ class AdventDay:
                 sig = inspect.signature(func)
                 accepts_args = len(sig.parameters) > 0
 
+                start_time = time.perf_counter_ns()
                 if data:
                     if not accepts_args:
                         result = func()
@@ -42,8 +45,11 @@ class AdventDay:
                         result = func(data)
                 else:
                     result = func()
+                end_time = time.perf_counter_ns()
+                duration = end_time - start_time
 
                 print(f"Output: {result}")
+                print(f"Time: {Term.format_time(duration)}")
                 print("---------------------")
             except TypeError as e:
                 print(f"Error running {name}: {e}")
