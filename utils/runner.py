@@ -6,6 +6,11 @@ from typing import Callable, Any
 
 
 class AdventDay:
+    def __init__(self, day: int = None, year: int = None):
+        self._day = day
+        self._year = year
+        self._base_path = Path.cwd()
+
     def run(
             self,
             day: int | None = None,
@@ -13,44 +18,22 @@ class AdventDay:
             test: bool = False,
     ):
         caller_frame = inspect.currentframe().f_back
-        caller_globals = caller_frame.f_globals
-        if not day:
-            full_path = caller_frame.f_code.co_filename
-            filename = os.path.basename(full_path)
-            name_without_ext = os.path.splitext(filename)[0]
-            match = re.search(r'(\d+)$', name_without_ext)
-            if match:
-                day = int(match.group(1))
+        day = day if day else self._detect_day(caller_frame.f_code.co_filename)
 
-        load_func = caller_globals.get('load')
+        self._discover_functions(caller_frame.f_globals)
 
-        tasks = []
-        loaders = {}
-        for name, obj in caller_globals.items():
-            if callable(obj):
-                match = re.match(r'^(part|task|star)(\d+)$', name)
-                if match:
-                    number = int(match.group(2))
-                    tasks.append((number, name, obj))
-                else:
-                    match = re.match(r'^load(\d+)$', name)
-                    if match:
-                        number = int(match.group(1))
-                        loaders[number] = obj
-
-        tasks.sort(key=lambda x: x[0])
-
-        if not tasks:
+        if not self.tasks:
             print("No partN or taskN functions found.")
             return
 
-        for number, name, func in tasks:
+        for part_num, name, func in self.tasks:
             print(f"--- Running {name} ---")
             try:
-                data = load_data(day, number, load_func, loaders, test)
+                data = load_data(day, part_num, self.loader, self.loaders, test)
+                sig = inspect.signature(func)
+                accepts_args = len(sig.parameters) > 0
+
                 if data:
-                    sig = inspect.signature(func)
-                    accepts_args = len(sig.parameters) > 0
                     if not accepts_args:
                         result = func()
                     elif type(data) is tuple:
@@ -67,6 +50,38 @@ class AdventDay:
             except FileNotFoundError as e:
                 print("No file found")
                 print(f"Error running {name}: {e}")
+
+    def _detect_day(self, frame_filename: str) -> int:
+        if self._day:
+            return self._day
+        filename = os.path.basename(frame_filename)
+        name_without_ext = os.path.splitext(filename)[0]
+        match = re.search(r'(\d+)$', name_without_ext)
+        if match:
+            return int(match.group(1))
+        print("Warning: Could not auto-detect day number. Defaulting to 0.")
+        return 0
+
+    def _discover_functions(self, scope: dict[str, Any]):
+        self.tasks = []
+        self.loaders = {}
+
+        for name, obj in scope.items():
+            if not callable(obj):
+                continue
+            task_match = re.match(r'^(?:part|task|star)(\d+)$', name, re.IGNORECASE)
+            if task_match:
+                number = int(task_match.group(1))
+                self.tasks.append((number, name, obj))
+                continue
+            load_match = re.match(r'^load(\d+)$', name)
+            if load_match:
+                number = int(load_match.group(1))
+                self.loaders[number] = obj
+
+        self.tasks.sort(key=lambda x: x[0])
+
+        self.loader = scope.get('load')
 
 
 def load_data(
