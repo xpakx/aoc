@@ -12,6 +12,7 @@ class AdventDay:
         self._day = day
         self._year = year
         self._base_path = Path.cwd()
+        self.term = Term()
 
     def run(
             self,
@@ -21,17 +22,36 @@ class AdventDay:
     ):
         caller_frame = inspect.currentframe().f_back
         day = day if day else self._detect_day(caller_frame.f_code.co_filename)
+        term = self.term
 
         self._discover_functions(caller_frame.f_globals)
 
+        print(f"Advent of Code {self._year or ''} // day {day:02d}".upper())
+        term.dim()
+        term.print("» Mode: ")
+        if test:
+            term.magenta()
+            term.println('TEST')
+        else:
+            term.red()
+            term.println('REAL')
+        term.dim()
+        term.print("» Solvers: ")
+        term.println(len(self.tasks))
+        print()
+
         if not self.tasks:
-            print("No partN or taskN functions found.")
+            term.red()
+            term.println("No solvers found. Add partN or solveN functions")
             return
 
         for part_num, name, func in self.tasks:
-            print(f"--- Running {name} ---")
+            term.bold()
+            term.blue()
+            term.println(f"─── {name.upper()} ───")
             try:
                 data = load_data(day, part_num, self.loader, self.loaders, test)
+
                 sig = inspect.signature(func)
                 accepts_args = len(sig.parameters) > 0
 
@@ -48,9 +68,10 @@ class AdventDay:
                 end_time = time.perf_counter_ns()
                 duration = end_time - start_time
 
-                print(f"Output: {result}")
-                print(f"Time: {Term.format_time(duration)}")
-                print("---------------------")
+                term.ok("Result", result)
+                term.dim()
+                term.println(f"Time: {Term.format_time(duration)}")
+                print()
             except TypeError as e:
                 print(f"Error running {name}: {e}")
             except FileNotFoundError as e:
