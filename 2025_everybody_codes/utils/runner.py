@@ -2,6 +2,7 @@ import inspect
 import re
 import os
 from pathlib import Path
+from typing import Callable, Any
 
 
 class AdventDay:
@@ -68,26 +69,79 @@ class AdventDay:
                 print(f"Error running {name}: {e}")
 
 
-def load_data(day, number, load_func, loaders, test):
-    loader = load_func
-    if number in loaders:
-        loader = loaders[number]
+def load_data(
+        day: int, part_num: int,
+        loader: Callable,
+        loaders,
+        test: bool
+) -> Any:
+    if part_num in loaders:
+        loader = loaders[part_num]
+
+    url = find_file(day, part_num, test)
+
+    # case 1: guess how to load
     if not loader:
-        return None
+        return guess_loading_format(url)
+
     sig = inspect.signature(loader)
     if len(sig.parameters) == 0:
         return loader()
+
     first_param = next(iter(sig.parameters.values()))
+    # case 2: user wants only part number
     if first_param.annotation is int:
-        return loader(number)
-    if test:
-        url = f"data/day{day}/example{number}"
-        path = Path(url)
-        if not path.exists():
-            url = f"data/day{day}/example"
-    else:
-        url = f"data/day{day}/data{number}"
-        path = Path(url)
-        if not path.exists():
-            url = f"data/day{day}/data"
+        return loader(part_num)
+
+    # case 3: user wants filename
+    if not url:
+        raise FileNotFoundError()
+    if first_param.annotation is str:
+        return loader(str(part_num))
     return loader(url)
+
+
+def find_file(day: int, part_num: int, test: bool) -> Path | None:
+    filenames = []
+
+    if test:
+        filenames = [
+            f"example{part_num}", f"test{part_num}",
+        ]
+    else:
+        filenames = [
+            f"input{part_num}", f"data{part_num}",
+            f"{day}"
+        ]
+
+    base_dir = Path('')
+    search_paths = [
+        base_dir / "data" / f"day{day}",
+        base_dir / "inputs" / f"day{day}",
+    ]
+
+    for path in search_paths:
+        for fname in filenames:
+            candidate = path / fname
+            if candidate.exists():
+                return candidate
+
+    fallback = f"data/day{day}/{'example' if test else 'data'}"
+    fallback_file = Path(fallback)
+    if fallback_file.exists():
+        return fallback_file
+    return None
+
+
+def guess_loading_format(filename: Path | str | None) -> Any:
+    if not filename:
+        return None
+    if type(filename) is str:
+        filename = Path(filename)
+    if not Path.exists():
+        return None
+    if not Path.is_file():
+        return None
+
+    # TODO
+    return filename.read_text().strip()
