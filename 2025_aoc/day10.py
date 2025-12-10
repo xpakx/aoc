@@ -1,6 +1,8 @@
 from utils.loader import get_file
 from utils.runner import AdventDay
 from dataclasses import dataclass, field
+import heapq
+import z3
 
 
 @dataclass
@@ -53,11 +55,23 @@ def print_bin(num):
     print(''.join(reversed(format(num, '#014b')[2:])))
 
 
+class Node(object):
+    def __init__(self, state, step):
+        self.val = (state, step)
+
+    def __repr__(self):
+        return f'Node value: {self.val}'
+
+    def __lt__(self, other):
+        return self.val[1] < other.val[1]
+
+
 def press(pattern):
-    states = [(0, 0)]
+    states = [Node(0, 0)]
+    heapq.heapify(states)
     visited = set()
     while len(states) > 0:
-        state, step = states.pop()
+        state, step = heapq.heappop(states).val
         if state in visited:
             continue
         visited.add(state)
@@ -66,8 +80,7 @@ def press(pattern):
             return step
         for button in pattern.buttons_masks:
             new_state = state ^ button
-            states.append((new_state, step+1))
-        states.sort(key=lambda x: x[1], reverse=True)
+            heapq.heappush(states, Node(new_state, step+1))
         # print(step)
         # print_bin(state)
         # print()
@@ -75,11 +88,40 @@ def press(pattern):
 
 
 def task1(data):
-    print(data)
     result = 0
     for pattern in data:
         result += press(pattern)
     return result
+
+
+def solve_pattern(pattern):
+    optimizer = z3.Optimize()
+    x_vars = [z3.Int(f'x_{i}') for i in range(len(pattern.buttons))]
+
+    for x in x_vars:
+        optimizer.add(x >= 0)
+
+    for i, goal_val in enumerate(pattern.goal):
+        affects_counter = []
+        for j, btn in enumerate(pattern.buttons):
+            if i in btn:
+                affects_counter.append(x_vars[j])
+        optimizer.add(z3.Sum(affects_counter) == goal_val)
+
+    optimizer.minimize(z3.Sum(x_vars))
+
+    if optimizer.check() == z3.sat:
+        model = optimizer.model()
+        return sum(model[x].as_long() for x in x_vars)
+    else:
+        raise Exception("Unsolvable pattern")
+
+
+def task2(data):
+    total_presses = 0
+    for pattern in data:
+        total_presses += solve_pattern(pattern)
+    return total_presses
 
 
 app = AdventDay()
