@@ -5,6 +5,14 @@ from pathlib import Path
 from typing import Callable, Any
 import time
 from .term import Term
+from dataclasses import dataclass
+
+
+@dataclass
+class Solver:
+    part: int
+    name: str
+    func: Callable
 
 
 class AdventDay:
@@ -13,6 +21,10 @@ class AdventDay:
         self._year = year
         self._base_path = Path.cwd()
         self.term = Term()
+
+        self.tasks: list[Solver] = []
+        self.loaders = {}
+        self.loader = None
 
     def run(
             self,
@@ -45,7 +57,10 @@ class AdventDay:
             term.println("No solvers found. Add partN or solveN functions")
             return
 
-        for part_num, name, func in self.tasks:
+        for task in self.tasks:
+            part_num = task.part
+            name = task.name
+            func = task.func
             term.bold()
             term.blue()
             term.println(f"─── {name.upper()} ───")
@@ -90,7 +105,7 @@ class AdventDay:
         return 0
 
     def _discover_functions(self, scope: dict[str, Any]):
-        self.tasks = []
+        # self.tasks = []
         self.loaders = {}
 
         for name, obj in scope.items():
@@ -99,16 +114,33 @@ class AdventDay:
             task_match = re.match(r'^(?:part|task|star)(\d+)$', name, re.IGNORECASE)
             if task_match:
                 number = int(task_match.group(1))
-                self.tasks.append((number, name, obj))
+                self._add_solver(number, name, obj)
                 continue
             load_match = re.match(r'^load(\d+)$', name)
             if load_match:
                 number = int(load_match.group(1))
                 self.loaders[number] = obj
 
-        self.tasks.sort(key=lambda x: x[0])
+        self.tasks.sort(key=lambda x: x.part)
 
         self.loader = scope.get('load')
+
+    def _add_solver(self, part: int, name: str, func: Callable) -> Solver:
+        self.tasks.append(Solver(part=part, name=name, func=func))
+
+    def task(self, part: int = None):
+        def decorator(func):
+            p = part
+            if p is None:
+                match = re.search(r'(\d+)', func.__name__)
+                if match:
+                    p = int(match.group(1))
+                else:
+                    raise ValueError(f"Cannot resolve part number for {func.__name__}, please provide part argument.")
+            
+            self._add_solver(p, func.__name__, func)
+            return func
+        return decorator
 
 
 def load_data(
