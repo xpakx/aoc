@@ -117,6 +117,7 @@ def solve_pattern(pattern):
         raise Exception("Unsolvable pattern")
 
 
+# TODO: implement simplex + branch-and-bound solution
 def task2(data):
     total_presses = 0
     for pattern in data:
