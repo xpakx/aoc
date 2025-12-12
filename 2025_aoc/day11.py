@@ -64,7 +64,7 @@ def task2(data):
     svr_to_fft = all_paths_recur('svr', 'fft', conns, {})
     fft_to_dac = all_paths_recur('fft', 'dac', conns, {})
     dac_to_out = all_paths_recur('dac', 'out', conns, {})
-    option2 = svr_to_fft*fft_to_dac*dac_to_out 
+    option2 = svr_to_fft*fft_to_dac*dac_to_out
     return option1 + option2
 
 
