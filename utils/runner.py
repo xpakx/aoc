@@ -15,6 +15,15 @@ class Solver:
     func: Callable
 
 
+@dataclass
+class TestCase:
+    expected: Any
+    input_data: str | None = None
+    input_file: str | None = None
+    only_for: str | list[str] | None = None
+    description: str = "Test Case"
+
+
 class AdventDay:
     def __init__(self, day: int = None, year: int = None):
         self._day = day
@@ -23,6 +32,7 @@ class AdventDay:
         self.term = Term()
 
         self.tasks: list[Solver] = []
+        self.tests: dict[int, list[TestCase]] = {}
         self.loaders = {}
         self.loader = None
 
@@ -37,6 +47,7 @@ class AdventDay:
         term = self.term
 
         self._discover_functions(caller_frame.f_globals)
+        self._update_tests_from_annotations()
 
         print(f"Advent of Code {self._year or ''} // day {day:02d}".upper())
         term.dim()
@@ -145,6 +156,34 @@ class AdventDay:
             self._add_solver(p, func.__name__, func)
             return func
         return decorator
+
+    def test(
+            self, expected: Any, input: str = None,
+            file: str = None, desc: str = None,
+            only_for: str | list[str] | None = None
+    ):
+        def decorator(func):
+            if not hasattr(func, '_advent_tests'):
+                func._advent_tests = []
+            case = TestCase(
+                    expected=expected,
+                    input_data=input,
+                    input_file=file,
+                    only_for=only_for,
+                    description=desc or f"Test #{len(func._advent_tests)+1}"
+            )
+            func._advent_tests.insert(0, case)
+            return func
+        return decorator
+
+    def _update_tests_from_annotations(self):
+        for task in self.tasks:
+            if not hasattr(task, '_advent_tests'):
+                continue
+            if self.tests.get(task.part) is None:
+                self.tests.set(task.part, [])
+            tests = self.tests.get(task.part)
+            tests.extend(task._advent_tests)
 
 
 def load_data(
