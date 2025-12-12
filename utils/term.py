@@ -22,6 +22,9 @@ class Term:
     def gold(self):
         self.color_prefix = Term.GOLD
 
+    def yellow(self):
+        self.color_prefix = Term.YELLOW
+
     def dim(self):
         self.style_prefix = Term.DIM
 
@@ -58,6 +61,28 @@ class Term:
         else:
             print()
 
+    def fail(self, reason: str, value: str | None = None):
+        self.red()
+        self.bold()
+        self.print(f"✘ {reason}")
+        if value is not None:
+            self.print(": ")
+            self.println(value)
+        else:
+            self.println("")
+
+    def warn(self, text: str):
+        self.yellow()
+        self.bold()
+        self.print("⚠ Warning:")
+        self.println(text)
+
+    def fatal(self, error: Exception):
+        self.red()
+        self.bold()
+        self.println(f"🛑 Error: {type(error).__name__}")
+        self.println(str(error))
+
     RESET = "\033[0m"
 
     BOLD = "\033[1m"
@@ -68,6 +93,7 @@ class Term:
     BLUE = "\033[34m"
     MAGENTA = "\033[35m"
     GOLD = "\033[38;5;220m"
+    YELLOW = "\033[33m"
 
     @staticmethod
     def format_time(ns: int) -> str:
