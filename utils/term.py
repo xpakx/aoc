@@ -35,7 +35,11 @@ class Term:
         self.style_prefix = ""
 
     def print(self, text: str, *, end=""):
-        print(f"{self.prefix}{self.color_prefix}{self.style_prefix}{text}{Term.RESET}", end=end)
+        print(
+                f"{self.prefix}{self.color_prefix}{self.style_prefix}"
+                f"{text}{Term.RESET}",
+                end=end
+        )
         self.reset_style
         self.reset_color()
 

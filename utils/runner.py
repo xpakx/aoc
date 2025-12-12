@@ -65,7 +65,9 @@ class AdventDay:
             term.blue()
             term.println(f"─── {name.upper()} ───")
             try:
-                data = load_data(day, part_num, self.loader, self.loaders, test)
+                data = load_data(
+                        day, part_num, self.loader, self.loaders, test
+                )
 
                 sig = inspect.signature(func)
                 accepts_args = len(sig.parameters) > 0
@@ -111,7 +113,10 @@ class AdventDay:
         for name, obj in scope.items():
             if not callable(obj):
                 continue
-            task_match = re.match(r'^(?:part|task|star)(\d+)$', name, re.IGNORECASE)
+            task_match = re.match(
+                    r'^(?:part|task|star)(\d+)$',
+                    name, re.IGNORECASE
+            )
             if task_match:
                 number = int(task_match.group(1))
                 self._add_solver(number, name, obj)
@@ -136,8 +141,7 @@ class AdventDay:
                 if match:
                     p = int(match.group(1))
                 else:
-                    raise ValueError(f"Cannot resolve part number for {func.__name__}, please provide part argument.")
-            
+                    raise ValueError("Cannot resolve part number for {func.__name__}, please provide part argument.")
             self._add_solver(p, func.__name__, func)
             return func
         return decorator

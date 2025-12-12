@@ -1,4 +1,7 @@
-def get_file(path, *, split_lines=True, split_by=None, strip=True, as_int=False):
+def get_file(
+        path, *, split_lines=True, split_by=None,
+        strip=True, as_int=False
+):
     if split_by is not None:
         split_lines = False
     if path is None:
@@ -24,7 +27,7 @@ def get_file(path, *, split_lines=True, split_by=None, strip=True, as_int=False)
     return data
 
 
-def get_file_single(path, *, strip=True, as_int=False): 
+def get_file_single(path, *, strip=True, as_int=False):
     return get_file(
             path, split_lines=False, strip=strip, as_int=as_int
     )
