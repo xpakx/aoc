@@ -68,6 +68,7 @@ class AdventDay:
             term.println("No solvers found. Add partN or solveN functions")
             return
 
+        # TODO: group by part_num
         for task in self.tasks:
             part_num = task.part
             name = task.name
@@ -79,32 +80,45 @@ class AdventDay:
                 data = load_data(
                         day, part_num, self.loader, self.loaders, test
                 )
-
-                sig = inspect.signature(func)
-                accepts_args = len(sig.parameters) > 0
-
-                start_time = time.perf_counter_ns()
-                if data:
-                    if not accepts_args:
-                        result = func()
-                    elif type(data) is tuple:
-                        result = func(*data)
-                    else:
-                        result = func(data)
-                else:
-                    result = func()
-                end_time = time.perf_counter_ns()
-                duration = end_time - start_time
-
-                term.ok("Result", result)
-                term.dim()
-                term.println(f"Time: {Term.format_time(duration)}")
-                print()
             except TypeError as e:
                 print(f"Error running {name}: {e}")
             except FileNotFoundError as e:
                 print("No file found")
                 print(f"Error running {name}: {e}")
+
+            self.run_part(func, data, part_num)
+            print()
+
+    def run_part(
+            self, func: Callable, data: Any, part: int
+    ):
+        sig = inspect.signature(func)
+        accepts_args = len(sig.parameters) > 0
+
+        # TODO: run test
+
+        start_time = time.perf_counter_ns()
+        result = None
+        try:
+            result = self.run_single(func, accepts_args, data)
+        except Exception as e:
+            self.term.fatal(e)
+        end_time = time.perf_counter_ns()
+        duration = end_time - start_time
+
+        if result:
+            self.term.ok("Result", result)
+        self.term.dim()
+        self.term.println(f"Time: {Term.format_time(duration)}")
+
+    def run_single(self, func: Callable, accepts_args: bool, data: Any):
+        if not data:
+            return func()
+        if not accepts_args:
+            return func()
+        elif type(data) is tuple:
+            return func(*data)
+        return func(data)
 
     def _detect_day(self, frame_filename: str) -> int:
         if self._day:
@@ -118,7 +132,6 @@ class AdventDay:
         return 0
 
     def _discover_functions(self, scope: dict[str, Any]):
-        # self.tasks = []
         self.loaders = {}
 
         for name, obj in scope.items():
@@ -184,6 +197,9 @@ class AdventDay:
                 self.tests.set(task.part, [])
             tests = self.tests.get(task.part)
             tests.extend(task._advent_tests)
+
+    def _select_loader(self, day: int, part_num: int, test: bool):
+        return self.loaders.get(part_num, self.loader)
 
 
 def load_data(

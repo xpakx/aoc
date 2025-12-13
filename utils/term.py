@@ -43,7 +43,7 @@ class Term:
                 f"{text}{Term.RESET}",
                 end=end
         )
-        self.reset_style
+        self.reset_style()
         self.reset_color()
 
     def println(self, text: str):
@@ -80,7 +80,7 @@ class Term:
     def fatal(self, error: Exception):
         self.red()
         self.bold()
-        self.println(f"🛑 Error: {type(error).__name__}")
+        self.print(f"⚠ {type(error).__name__}: ")
         self.println(str(error))
 
     RESET = "\033[0m"
