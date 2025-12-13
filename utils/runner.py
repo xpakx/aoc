@@ -191,12 +191,12 @@ class AdventDay:
 
     def _update_tests_from_annotations(self):
         for task in self.tasks:
-            if not hasattr(task, '_advent_tests'):
+            if not hasattr(task.func, '_advent_tests'):
                 continue
             if self.tests.get(task.part) is None:
-                self.tests.set(task.part, [])
+                self.tests[task.part] = []
             tests = self.tests.get(task.part)
-            tests.extend(task._advent_tests)
+            tests.extend(task.func._advent_tests)
 
     def _select_loader(self, day: int, part_num: int, test: bool):
         return self.loaders.get(part_num, self.loader)
