@@ -3,6 +3,7 @@ class Term:
         self.prefix = ""
         self.color_prefix = ""
         self.style_prefix = ""
+        self.after_new_line = True
 
     def set_padding(self, level: int = 0):
         self.prefix = " " * level
@@ -38,18 +39,20 @@ class Term:
         self.style_prefix = ""
 
     def print(self, text: str, *, end=""):
+        prefix = self.prefix if self.after_new_line else ''
         print(
-                f"{self.prefix}{self.color_prefix}{self.style_prefix}"
+                f"{prefix}{self.color_prefix}{self.style_prefix}"
                 f"{text}{Term.RESET}",
                 end=end
         )
+        self.after_new_line = (end is None)
         self.reset_style()
         self.reset_color()
 
     def println(self, text: str):
         self.print(text, end=None)
 
-    def ok(self, reason: str, value: str | None):
+    def ok(self, reason: str, value: str | None = None):
         self.green()
         self.print(f"✔ {reason}{":" if value is not None else ""} ")
         if value is not None:
@@ -64,7 +67,7 @@ class Term:
     def fail(self, reason: str, value: str | None = None):
         self.red()
         self.bold()
-        self.print(f"✘ {reason}")
+        self.print(f"✘ {reason.strip()}")
         if value is not None:
             self.print(": ")
             self.println(value)
@@ -74,7 +77,7 @@ class Term:
     def warn(self, text: str):
         self.yellow()
         self.bold()
-        self.print("⚠ Warning:")
+        self.print("⚠ Warning: ")
         self.println(text)
 
     def fatal(self, error: Exception):
