@@ -95,7 +95,7 @@ class AdventDay:
         sig = inspect.signature(func)
         accepts_args = len(sig.parameters) > 0
 
-        # TODO: run test
+        self._run_tests(func, part)
 
         start_time = time.perf_counter_ns()
         result = None
@@ -200,6 +200,60 @@ class AdventDay:
 
     def _select_loader(self, day: int, part_num: int, test: bool):
         return self.loaders.get(part_num, self.loader)
+
+    def _run_tests(self, func: Callable, part_num: int):
+        tests = self.tests.get(part_num)
+        if not tests:
+            return
+        sig = inspect.signature(func)
+        accepts_args = len(sig.parameters) > 0
+        self.term.dim()
+        self.term.println(f"Running {len(tests)} inline "
+                          f"test{'s' if len(tests) > 1 else ''}...")
+        self.term.set_padding(2)
+
+        for test in tests:
+            data = self._get_test_data(test)
+            start_time = time.perf_counter_ns()
+            all_passed = True
+            err = False
+            actual = None
+            try:
+                actual = self.run_single(func, accepts_args, data)
+            except Exception as e:
+                self.term.fail(test.description, f"Error: {e}")
+                err = True
+                all_passed = False
+            end_time = time.perf_counter_ns()
+            duration = end_time - start_time
+            is_pass = actual == test.expected
+            if is_pass:
+                self.term.green()
+                self.term.print(f"✔ {test.description} ")
+                self.term.dim()
+                self.term.println(f"({self.term.format_time(duration)})")
+            elif not err:
+                self.term.red()
+                self.term.print(f"✘ {test.description} ")
+                self.term.dim()
+                self.term.println("FAILED")
+                self.term.dim()
+                self.term.println(f"Expected: {test.expected}")
+                self.term.dim()
+                self.term.println(f"Actual: {actual}")
+                all_passed = False
+
+        if not all_passed:
+            self.term.red()
+            self.term.println("Tests failed")
+        else:
+            self.term.green()
+            self.term.println("All tests passed")
+        print()
+        self.term.set_padding(0)
+
+    def _get_test_data(self, test: TestCase):
+        pass
 
 
 def load_data(
