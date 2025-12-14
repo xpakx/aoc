@@ -273,11 +273,17 @@ class AdventDay:
     def _get_test_data(self, test: TestCase):
         # TODO: file is defined in test.input_file
         original_open = builtins.open
-        builtins.open = generate_mock_read(test.input_data)
+        sentinel = "__ADVENT_TEST_INPUT_DATA_SENTINEL__"
+        builtins.open = generate_mock_read(
+                test.input_data, sentinel, original_open
+        )
         data = None
         try:
+            # TODO: separate getting loader and loading data
+            # TODO: use correct part
             data = load_data(
-                    self.day, 0, self.loader, self.loaders, False
+                    self.day, 0, self.loader, self.loaders, False,
+                    filename=sentinel,
             )
         except TypeError as e:
             print(f"Error running Test: {e}")
@@ -304,12 +310,13 @@ def load_data(
         day: int, part_num: int,
         loader: Callable,
         loaders,
-        test: bool
+        test: bool,
+        filename: str | None = None,
 ) -> Any:
     if part_num in loaders:
         loader = loaders[part_num]
 
-    url = find_file(day, part_num, test)
+    url = find_file(day, part_num, test, filename)
 
     # case 1: guess how to load
     if not loader:
@@ -333,7 +340,13 @@ def load_data(
     return loader(url)
 
 
-def find_file(day: int, part_num: int, test: bool) -> Path | None:
+def find_file(
+        day: int, part_num: int, test: bool,
+        filename: str | None = None
+) -> Path | None:
+    if filename is not None:
+        return filename
+
     filenames = []
 
     if test:
@@ -379,7 +392,10 @@ def guess_loading_format(filename: Path | str | None) -> Any:
     return filename.read_text().strip()
 
 
-def generate_mock_read(text: str):
+def generate_mock_read(text: str, sentinel: str, original_open):
     def mock_read(file, mode="r", encoding=None):
-        return io.StringIO(text)
+        if file == sentinel:
+            return io.StringIO(text)
+        else:
+            original_open(file, mode, encoding)
     return mock_read
