@@ -7,6 +7,8 @@ import time
 from .term import Term
 from dataclasses import dataclass
 import argparse
+import builtins
+import io
 
 
 @dataclass
@@ -269,8 +271,22 @@ class AdventDay:
         self.term.set_padding(0)
 
     def _get_test_data(self, test: TestCase):
-        # TODO: temp files?
-        pass
+        # TODO: file is defined in test.input_file
+        original_open = builtins.open
+        builtins.open = generate_mock_read(test.input_data)
+        data = None
+        try:
+            data = load_data(
+                    self.day, 0, self.loader, self.loaders, False
+            )
+        except TypeError as e:
+            print(f"Error running Test: {e}")
+        except FileNotFoundError as e:
+            print("No file found")
+            print(f"Error running Test: {e}")
+        finally:
+            builtins.open = original_open
+        return data
 
     def _detect_arguments(self):
         parser = argparse.ArgumentParser()
@@ -360,3 +376,9 @@ def guess_loading_format(filename: Path | str | None) -> Any:
 
     # TODO
     return filename.read_text().strip()
+
+
+def generate_mock_read(text: str):
+    def mock_read(self, mode="r", encoding=None):
+        return io.StringIO(text)
+    return mock_read
