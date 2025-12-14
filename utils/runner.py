@@ -6,6 +6,7 @@ from typing import Callable, Any
 import time
 from .term import Term
 from dataclasses import dataclass
+import argparse
 
 
 @dataclass
@@ -30,6 +31,7 @@ class AdventDay:
         self._year = year
         self._base_path = Path.cwd()
         self.term = Term()
+        self.example_mode = None
 
         self.tasks: dict[int, list[Solver]] = {}
         self.tests: dict[int, list[TestCase]] = {}
@@ -50,6 +52,10 @@ class AdventDay:
 
         self._discover_functions(caller_frame.f_globals)
         self._update_tests_from_annotations()
+
+        self._detect_arguments()
+        if self.example_mode is not None:
+            test = self.example_mode
 
         print(f"Advent of Code {self._year or ''} // day {day:02d}".upper())
         term.dim()
@@ -265,6 +271,17 @@ class AdventDay:
     def _get_test_data(self, test: TestCase):
         # TODO: temp files?
         pass
+
+    def _detect_arguments(self):
+        parser = argparse.ArgumentParser()
+        parser.add_argument(
+                '-e', '--example',
+                action='store_true',
+                help='Run on example data'
+        )
+        args = parser.parse_args()
+        if args.example:
+            self.example_mode = True
 
 
 def load_data(
