@@ -31,7 +31,7 @@ class AdventDay:
         self._base_path = Path.cwd()
         self.term = Term()
 
-        self.tasks: list[Solver] = []
+        self.tasks: dict[int, list[Solver]] = {}
         self.tests: dict[int, list[TestCase]] = {}
         self.loaders = {}
         self.loader = None
@@ -62,26 +62,32 @@ class AdventDay:
             term.println('REAL')
         term.dim()
         term.print("» Solvers: ")
-        term.println(len(self.tasks))
+        # TODO
+        solver_count = sum(
+                len(list_value) for list_value in self.tasks.values()
+        )
+        term.println(solver_count)
         print()
 
-        if not self.tasks:
+        if solver_count == 0:
             term.red()
             term.println("No solvers found. Add partN or solveN functions")
             return
 
-        # TODO: group by part_num
-        for task in self.tasks:
+        for part in sorted(self.tasks.keys()):
+            tasks = self.tasks[part]
             term.bold()
             term.blue()
-            term.println(f"─── PART {task.part} ───")
-            self.run_part(task, test)
+            term.println(f"─── PART {part} ───")
+            self.run_part(tasks, test)
             print()
 
     def run_part(
-            self, solver: Solver,
+            self, solvers: list[Solver],
             test: bool,
     ):
+        solver = solvers[0]
+        # TODO: select main solver and alt solvers
         func = solver.func
         name = solver.name
         part = solver.part
@@ -153,12 +159,12 @@ class AdventDay:
                 number = int(load_match.group(1))
                 self.loaders[number] = obj
 
-        self.tasks.sort(key=lambda x: x.part)
-
         self.loader = scope.get('load')
 
     def _add_solver(self, part: int, name: str, func: Callable) -> Solver:
-        self.tasks.append(Solver(part=part, name=name, func=func))
+        if part not in self.tasks:
+            self.tasks[part] = []
+        self.tasks[part].append(Solver(part=part, name=name, func=func))
 
     def task(self, part: int = None):
         def decorator(func):
@@ -193,13 +199,14 @@ class AdventDay:
         return decorator
 
     def _update_tests_from_annotations(self):
-        for task in self.tasks:
-            if not hasattr(task.func, '_advent_tests'):
-                continue
-            if self.tests.get(task.part) is None:
-                self.tests[task.part] = []
-            tests = self.tests.get(task.part)
-            tests.extend(task.func._advent_tests)
+        for tasks in self.tasks.values():
+            for task in tasks:
+                if not hasattr(task.func, '_advent_tests'):
+                    continue
+                if self.tests.get(task.part) is None:
+                    self.tests[task.part] = []
+                tests = self.tests.get(task.part)
+                tests.extend(task.func._advent_tests)
 
     def _select_loader(self, day: int, part_num: int, test: bool):
         return self.loaders.get(part_num, self.loader)
