@@ -35,6 +35,7 @@ class AdventDay:
         self.tests: dict[int, list[TestCase]] = {}
         self.loaders = {}
         self.loader = None
+        self.day = None
 
     def run(
             self,
@@ -44,6 +45,7 @@ class AdventDay:
     ):
         caller_frame = inspect.currentframe().f_back
         day = day if day else self._detect_day(caller_frame.f_code.co_filename)
+        self.day = day
         term = self.term
 
         self._discover_functions(caller_frame.f_globals)
@@ -70,28 +72,29 @@ class AdventDay:
 
         # TODO: group by part_num
         for task in self.tasks:
-            part_num = task.part
-            name = task.name
-            func = task.func
             term.bold()
             term.blue()
-            term.println(f"─── {name.upper()} ───")
-            try:
-                data = load_data(
-                        day, part_num, self.loader, self.loaders, test
-                )
-            except TypeError as e:
-                print(f"Error running {name}: {e}")
-            except FileNotFoundError as e:
-                print("No file found")
-                print(f"Error running {name}: {e}")
-
-            self.run_part(func, data, part_num)
+            term.println(f"─── PART {task.part} ───")
+            self.run_part(task, test)
             print()
 
     def run_part(
-            self, func: Callable, data: Any, part: int
+            self, solver: Solver,
+            test: bool,
     ):
+        func = solver.func
+        name = solver.name
+        part = solver.part
+        try:
+            data = load_data(
+                    self.day, part, self.loader, self.loaders, test
+            )
+        except TypeError as e:
+            print(f"Error running {name}: {e}")
+        except FileNotFoundError as e:
+            print("No file found")
+            print(f"Error running {name}: {e}")
+
         sig = inspect.signature(func)
         accepts_args = len(sig.parameters) > 0
 
@@ -253,6 +256,7 @@ class AdventDay:
         self.term.set_padding(0)
 
     def _get_test_data(self, test: TestCase):
+        # TODO: temp files?
         pass
 
 
