@@ -327,8 +327,9 @@ def load_data(
     # case 3: user wants filename
     if not url:
         raise FileNotFoundError()
+    # TODO: make better way for user to request filename
     if first_param.annotation is str:
-        return loader(str(part_num))
+        return loader(str(url))
     return loader(url)
 
 
@@ -369,7 +370,7 @@ def guess_loading_format(filename: Path | str | None) -> Any:
         return None
     if type(filename) is str:
         filename = Path(filename)
-    if not Path.exists():
+    if not filename.exists():
         return None
     if not Path.is_file():
         return None
@@ -379,6 +380,6 @@ def guess_loading_format(filename: Path | str | None) -> Any:
 
 
 def generate_mock_read(text: str):
-    def mock_read(self, mode="r", encoding=None):
+    def mock_read(file, mode="r", encoding=None):
         return io.StringIO(text)
     return mock_read
