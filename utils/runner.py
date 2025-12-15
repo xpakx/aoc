@@ -16,6 +16,7 @@ class Solver:
     part: int
     name: str
     func: Callable
+    alt: bool = False
 
 
 @dataclass
@@ -94,8 +95,8 @@ class AdventDay:
             self, solvers: list[Solver],
             test: bool,
     ):
-        solver = solvers[0]
-        # TODO: select main solver and alt solvers
+        part = solvers[0].part
+        solver = self._select_main_solver(solvers, part)
         func = solver.func
         name = solver.name
         part = solver.part
@@ -316,6 +317,20 @@ class AdventDay:
         args = parser.parse_args()
         if args.example:
             self.example_mode = True
+
+    def _select_main_solver(
+            self, solvers: list[Solver],
+            part_num: int
+    ) -> Solver | None:
+        best_candidate = None
+        prim = ["part", "task", "star"]
+        primary_names = [x+str(part_num) for x in prim]
+        for solver in solvers:
+            if solver.name in primary_names:
+                return solver
+            if not solver.alt and best_candidate is None:
+                best_candidate = solver
+        return best_candidate
 
 
 def load_data(
