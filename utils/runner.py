@@ -271,13 +271,25 @@ class AdventDay:
         self.term.set_padding(0)
 
     def _get_test_data(self, test: TestCase):
-        # TODO: file is defined in test.input_file
+        if test.input_file is not None and test.input_data is not None:
+            self.term.warn("Both input data and file are defined. Using file.")
+        data = None
+        if test.input_file:
+            try:
+                data = load_data(
+                        self.day, 0, self.loader, self.loaders, False,
+                        filename=test.input_file,
+                )
+            except FileNotFoundError as e:
+                print("No file found")
+                print(f"Error running Test: {e}")
+            return data
+
         original_open = builtins.open
         sentinel = "__ADVENT_TEST_INPUT_DATA_SENTINEL__"
         builtins.open = generate_mock_read(
                 test.input_data, sentinel, original_open
         )
-        data = None
         try:
             # TODO: separate getting loader and loading data
             # TODO: use correct part
