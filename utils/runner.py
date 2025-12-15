@@ -35,6 +35,7 @@ class AdventDay:
         self._base_path = Path.cwd()
         self.term = Term()
         self.example_mode = None
+        self.compare = False
 
         self.tasks: dict[int, list[Solver]] = {}
         self.tests: dict[int, list[TestCase]] = {}
@@ -87,16 +88,18 @@ class AdventDay:
             tasks = self.tasks[part]
             term.bold()
             term.blue()
+            solver_main = self._select_main_solver(tasks, part)
             term.println(f"─── PART {part} ───")
-            self.run_part(tasks, test)
+            self.run_part(solver_main, test)
+            if self.compare:
+                self.run_alts(solver_main, tasks, test)
             print()
 
     def run_part(
-            self, solvers: list[Solver],
+            self,
+            solver: Solver,
             test: bool,
     ):
-        part = solvers[0].part
-        solver = self._select_main_solver(solvers, part)
         func = solver.func
         name = solver.name
         part = solver.part
@@ -137,6 +140,16 @@ class AdventDay:
         elif type(data) is tuple:
             return func(*data)
         return func(data)
+
+    def run_alts(self, main: Solver, solvers: list[Solver], test: bool):
+        self.term.set_padding(2)  # TODO: add padding
+        for solver in solvers:
+            if main == solver:
+                continue
+            self.term.dim()
+            self.term.println(f"Solution: {solver.name}")
+            self.run_part(solver, test)
+        self.term.set_padding(0)
 
     def _detect_day(self, frame_filename: str) -> int:
         if self._day:
@@ -314,9 +327,15 @@ class AdventDay:
                 action='store_true',
                 help='Run on example data'
         )
+        parser.add_argument(
+                '-c', '--compare',
+                action='store_true',
+                help='Compare alternative solutions'
+        )
         args = parser.parse_args()
         if args.example:
             self.example_mode = True
+        self.compare = args.compare
 
     def _select_main_solver(
             self, solvers: list[Solver],
