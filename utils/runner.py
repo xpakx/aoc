@@ -28,6 +28,12 @@ class TestCase:
     description: str = "Test Case"
 
 
+@dataclass
+class RunResult:
+    result: Any
+    time: int
+
+
 class AdventDay:
     def __init__(self, day: int = None, year: int = None):
         self._day = day
@@ -91,16 +97,20 @@ class AdventDay:
             term.blue()
             solver_main = self._select_main_solver(tasks, part)
             term.println(f"─── PART {part} ───")
-            self.run_part(solver_main, test)
+            result = self.run_part(solver_main, test)
+            if result.result:
+                self.term.ok("Result", result.result)
+            self.term.dim()
+            self.term.println(f"Time: {Term.format_time(result.time)}")
             if self.compare:
-                self.run_alts(solver_main, tasks, test)
+                self.run_alts(solver_main, result, tasks, test)
             print()
 
     def run_part(
             self,
             solver: Solver,
             test: bool,
-    ):
+    ) -> RunResult:
         func = solver.func
         name = solver.name
         part = solver.part
@@ -129,10 +139,7 @@ class AdventDay:
         end_time = time.perf_counter_ns()
         duration = end_time - start_time
 
-        if result:
-            self.term.ok("Result", result)
-        self.term.dim()
-        self.term.println(f"Time: {Term.format_time(duration)}")
+        return RunResult(result=result, time=duration)
 
     def run_single(self, func: Callable, accepts_args: bool, data: Any):
         if not data:
@@ -143,14 +150,41 @@ class AdventDay:
             return func(*data)
         return func(data)
 
-    def run_alts(self, main: Solver, solvers: list[Solver], test: bool):
+    def run_alts(
+            self, main: Solver, main_result: RunResult,
+            solvers: list[Solver], test: bool
+    ):
         self.term.indent(2)  # TODO: add padding
         for solver in solvers:
             if main == solver:
                 continue
+            # self.term.dim()
+            # self.term.println(f"Solution: {solver.name}")
+
+            result = self.run_part(solver, test)
+            self.term.print("└ ")
             self.term.dim()
-            self.term.println(f"Solution: {solver.name}")
-            self.run_part(solver, test)
+            self.term.print(f"Alt {solver.name}")
+            self.term.print(": ")
+            if result.result == main_result.result:
+                self.term.green()
+                self.term.print("✔ ")
+            else:
+                self.term.red()
+                self.term.print("✖ ")
+                self.term.dim()
+                self.term.print(f"(Got: {result.result}) ")
+
+            self.term.print(f"{self.term.format_time(result.time)} ")
+            if result.time < main_result.time:
+                factor = main_result.time / result.time
+                self.term.green()
+                self.term.print(f"[{factor:.1f}x faster]")
+            elif main_result.time < result.time:
+                factor = result.time / main_result.time
+                self.term.red()
+                self.term.print(f"[{factor:.1f}x slower]")
+
         self.term.dedent(2)
 
     def _detect_day(self, frame_filename: str) -> int:
