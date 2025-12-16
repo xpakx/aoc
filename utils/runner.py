@@ -142,14 +142,14 @@ class AdventDay:
         return func(data)
 
     def run_alts(self, main: Solver, solvers: list[Solver], test: bool):
-        self.term.set_padding(2)  # TODO: add padding
+        self.term.indent(2)  # TODO: add padding
         for solver in solvers:
             if main == solver:
                 continue
             self.term.dim()
             self.term.println(f"Solution: {solver.name}")
             self.run_part(solver, test)
-        self.term.set_padding(0)
+        self.term.dedent(2)
 
     def _detect_day(self, frame_filename: str) -> int:
         if self._day:
@@ -242,11 +242,10 @@ class AdventDay:
         self.term.dim()
         self.term.println(f"Running {len(tests)} inline "
                           f"test{'s' if len(tests) > 1 else ''}...")
-        self.term.set_padding(2)
+        self.term.indent(2)
 
         for test in tests:
             data = self._get_test_data(test)
-            start_time = time.perf_counter_ns()
             all_passed = True
             err = False
             actual = None
@@ -256,23 +255,19 @@ class AdventDay:
                 self.term.fail(test.description, f"Error: {e}")
                 err = True
                 all_passed = False
-            end_time = time.perf_counter_ns()
-            duration = end_time - start_time
             is_pass = actual == test.expected
             if is_pass:
                 self.term.green()
-                self.term.print(f"✔ {test.description} ")
-                self.term.dim()
-                self.term.println(f"({self.term.format_time(duration)})")
+                self.term.println(f"✔ {test.description} ")
             elif not err:
                 self.term.red()
                 self.term.print(f"✘ {test.description} ")
                 self.term.dim()
-                self.term.println("FAILED")
+                self.term.print("| ")
                 self.term.dim()
-                self.term.println(f"Expected: {test.expected}")
+                self.term.print(f"Expected: {test.expected} /")
                 self.term.dim()
-                self.term.println(f"Actual: {actual}")
+                self.term.println(f" Got: {actual}")
                 all_passed = False
 
         if not all_passed:
@@ -282,7 +277,7 @@ class AdventDay:
             self.term.green()
             self.term.println("All tests passed")
         print()
-        self.term.set_padding(0)
+        self.term.dedent(2)
 
     def _get_test_data(self, test: TestCase):
         if test.input_file is not None and test.input_data is not None:
@@ -295,8 +290,8 @@ class AdventDay:
                         filename=test.input_file,
                 )
             except FileNotFoundError as e:
-                print("No file found")
-                print(f"Error running Test: {e}")
+                # self.term.println("No file found")
+                self.term.fatal(e)
             return data
 
         original_open = builtins.open
