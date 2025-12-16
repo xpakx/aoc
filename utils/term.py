@@ -1,5 +1,6 @@
 class Term:
     def __init__(self):
+        self.current_indent = 0
         self.prefix = ""
         self.color_prefix = ""
         self.style_prefix = ""
@@ -7,6 +8,14 @@ class Term:
 
     def set_padding(self, level: int = 0):
         self.prefix = " " * level
+        self.current_indent = level
+
+    def indent(self, delta: int):
+        indent = max(0, self.current_indent + delta)
+        self.set_padding(indent)
+
+    def dedent(self, delta: int):
+        self.indent(-delta)
 
     def red(self):
         self.color_prefix = Term.RED
@@ -38,11 +47,17 @@ class Term:
     def reset_style(self):
         self.style_prefix = ""
 
+    def get_prefix(self) -> str:
+        prefix = ""
+        if self.after_new_line:
+            prefix += self.prefix
+        prefix += self.color_prefix
+        prefix += self.style_prefix
+        return prefix
+
     def print(self, text: str, *, end=""):
-        prefix = self.prefix if self.after_new_line else ''
         print(
-                f"{prefix}{self.color_prefix}{self.style_prefix}"
-                f"{text}{Term.RESET}",
+                f"{self.get_prefix()}{text}{Term.RESET}",
                 end=end
         )
         self.after_new_line = (end is None)
