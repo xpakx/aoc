@@ -36,6 +36,7 @@ class AdventDay:
         self.term = Term()
         self.example_mode = None
         self.compare = False
+        self.run_tests = False
 
         self.tasks: dict[int, list[Solver]] = {}
         self.tests: dict[int, list[TestCase]] = {}
@@ -116,7 +117,8 @@ class AdventDay:
         sig = inspect.signature(func)
         accepts_args = len(sig.parameters) > 0
 
-        self._run_tests(func, part)
+        if self.run_tests:
+            self._run_tests(func, part)
 
         start_time = time.perf_counter_ns()
         result = None
@@ -327,10 +329,16 @@ class AdventDay:
                 action='store_true',
                 help='Compare alternative solutions'
         )
+        parser.add_argument(
+                '-t', '--test',
+                action='store_true',
+                help='Run tests'
+        )
         args = parser.parse_args()
         if args.example:
             self.example_mode = True
         self.compare = args.compare
+        self.run_tests = args.test
 
     def _select_main_solver(
             self, solvers: list[Solver],
