@@ -2,31 +2,7 @@ import re
 from dataclasses import fields, is_dataclass
 
 
-def parse(
-        datacls, template: str,
-        text: str | list[str],
-        list_separator=" ",
-):
-
-    group_map = {}
-    dtcls_fields = {}
-
-    for f in fields(datacls):
-        safe = f.name.replace('.', '__')
-        dtcls_fields[safe] = f.type
-
-    # Turn {foo.bar} placeholders into regex groups with safe names
-    def repl(match):
-        name = match.group(1)
-        safe = name.replace('.', '__')
-        group_map[safe] = name
-        # TODO: nested fields
-        tp = dtcls_fields.get(safe)
-        if tp == int or tp == float:
-            return f"(?P<{safe}>[-+]?\\d+(?:\\.\\d+)?)"
-        else:
-            return f"(?P<{safe}>.+?)"
-
+def build_regex_pattern(template, repl):
     # Build regex from template
     regex_parts = []
     cursor = 0
@@ -42,13 +18,50 @@ def parse(
         .replace(r"\,", r"\s*,\s*")\
         .replace(r"\@", r"\s*@\s*")\
         .replace(r"\ ", r"\s+")
+    return pattern
 
+
+def get_repl_func(group_map, dtcls_fields):
+    def repl(match):
+        name = match.group(1)
+        safe = name.replace('.', '__')
+        group_map[safe] = name
+        # TODO: nested fields
+        tp = dtcls_fields.get(safe)
+        if tp == int or tp == float:
+            return f"(?P<{safe}>[-+]?\\d+(?:\\.\\d+)?)"
+        else:
+            return f"(?P<{safe}>.+?)"
+    return repl
+
+
+def sanitize_field_names(datacls):
+    dtcls_fields = {}
+    for f in fields(datacls):
+        safe = f.name.replace('.', '__')
+        dtcls_fields[safe] = f.type
+    return dtcls_fields
+
+
+def prepare_source(text: str | list[str]):
+    if type(text) is str:
+        return [line.strip() for line in text.strip().splitlines() if line.strip()]
+    return text
+
+
+def parse(
+        datacls, template: str,
+        text: str | list[str],
+        list_separator=" ",
+):
+    group_map = {}
+    dtcls_fields = sanitize_field_names(datacls)
+
+    repl = get_repl_func(group_map, dtcls_fields)
+    pattern = build_regex_pattern(template, repl)
     regex = re.compile(r"^" + pattern + r"$")
 
-    if type(text) is str:
-        lines = [line.strip() for line in text.strip().splitlines() if line.strip()]
-    else:
-        lines = text
+    lines = prepare_source(text)
     parsed = []
 
     for line in lines:

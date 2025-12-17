@@ -154,13 +154,10 @@ class AdventDay:
             self, main: Solver, main_result: RunResult,
             solvers: list[Solver], test: bool
     ):
-        self.term.indent(2)  # TODO: add padding
+        self.term.indent(2)
         for solver in solvers:
             if main == solver:
                 continue
-            # self.term.dim()
-            # self.term.println(f"Solution: {solver.name}")
-
             result = self.run_part(solver, test)
             self.term.print("└ ")
             self.term.dim()
@@ -326,7 +323,6 @@ class AdventDay:
                         filename=test.input_file,
                 )
             except FileNotFoundError as e:
-                # self.term.println("No file found")
                 self.term.fatal(e)
             return data
 
