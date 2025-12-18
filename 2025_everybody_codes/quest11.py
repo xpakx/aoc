@@ -56,5 +56,23 @@ def part1(nums):
     return checksum(nums)
 
 
+def part2(nums):
+    phase = 1
+    i = 0
+    balanced = False
+    while not balanced:
+        if phase == 1:
+            moved = step(nums)
+        if not moved:
+            phase = 2
+        if phase == 2:
+            moved = step_second_phase(nums)
+        if not moved:
+            break
+        i += 1
+
+    return i
+
+
 app = AdventDay()
 app.run()
