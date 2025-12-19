@@ -74,5 +74,26 @@ def part1(nums):
     return result
 
 
+def part2(nums):
+    queue = [Vec2(0, 0), Vec2(len(nums)-1, len(nums[0])-1)]
+    visited = set()
+    # print_map(nums, queue)
+    result = 0
+    while len(queue) > 0:
+        pos = queue.pop()
+        if pos in visited:
+            continue
+        visited.add(pos)
+
+        result += 1
+        neighbors = pos.neighbors(
+                len(nums[0]), len(nums),
+                lambda x: nums[x[0]][x[1]] <= nums[pos[0]][pos[1]]
+        )
+        queue.extend(neighbors)
+
+    return result
+
+
 app = AdventDay()
 app.run()
