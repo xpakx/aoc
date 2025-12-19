@@ -95,5 +95,49 @@ def part2(nums):
     return result
 
 
+def sum(nums, start, visited):
+    queue = [start]
+    result = 0
+    while len(queue) > 0:
+        pos = queue.pop()
+        if pos in visited:
+            continue
+        visited.add(pos)
+
+        result += 1
+        neighbors = pos.neighbors(
+                len(nums[0]), len(nums),
+                lambda x: nums[x[0]][x[1]] <= nums[pos[0]][pos[1]]
+        )
+        queue.extend(neighbors)
+    return result
+
+
+def find_barrel(nums, old_visited):
+    max_res = 0
+    max_visited = None
+    for x, row in enumerate(nums):
+        for y, cell in enumerate(row):
+            if (x, y) in old_visited:
+                continue
+            start = Vec2(x, y)
+            visited = set(old_visited)
+            res = sum(nums, start, visited)
+            if res > max_res:
+                max_res = res
+                max_visited = visited
+    return max_res, max_visited
+
+
+def part3(nums):
+    b1, visited = find_barrel(nums, set())
+    print(b1)
+    b2, visited = find_barrel(nums, visited)
+    print(b2)
+    b3, visited = find_barrel(nums, visited)
+    print(b3)
+    return b1 + b2 + b3
+
+
 app = AdventDay()
 app.run()
