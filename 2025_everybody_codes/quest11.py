@@ -49,6 +49,9 @@ def part1(nums):
 
 
 def part2(nums):
+    # TODO: pretty sure phase 1 could be
+    # translated to convex hull problem
+    # somehow
     phase = 1
     i = 0
     while True:
@@ -68,6 +71,8 @@ def verify(nums):
     assert all(
         nums[i] <= nums[i+1] for i in range(len(nums)-1)
     ), "Input should be monotonically ascending"
+    rem = sum(nums) % len(nums)
+    assert rem == 0, "Input should be perfectly balanceable"
 
 
 def part3(nums):
