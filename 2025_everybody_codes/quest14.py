@@ -132,4 +132,67 @@ def part2_lists(floor):
     return solve_lists(floor, 2025)
 
 
+def do_solve_bitmask(rows, steps, width, pattern, pat_width):
+    next = [0 for row in rows]
+    rows = [0] + rows + [0]
+    next = [0] + next + [0]
+    result = 0
+    width_mask = (1 << width) - 1
+    c = (width - pat_width) // 2
+    pattern_mask = ((1 << pat_width) - 1) << c
+    visited = {}
+    found = []
+    for i in range(steps):
+        check_neighbours_bin(rows, next, width_mask)
+        result += count_bin(next)
+        rows, next = next, rows
+        key = tuple(rows)
+        if key in visited:
+            return visited[key], i, found
+        if check_pattern(rows, pattern, pattern_mask):
+            found.append((i, count_bin(rows)))
+        visited[key] = i
+        clean_table_bin(next)
+    return result
+
+
+def check_pattern(rows, pattern, pattern_mask):
+    c = (len(rows) - len(pattern)) // 2
+    for i in range(len(pattern)):
+        if (rows[i + c] & pattern_mask) != pattern[i]:
+            return False
+    return True
+
+
+def part3(floor):
+    rows = [0 for _ in range(34)]
+    c = (34 - len(floor[0])) // 2
+    pattern = []
+    for row in floor:
+        mask = 0
+        shift = 0
+        for tile in row:
+            if tile == Tile.active:
+                mask |= (1 << shift)
+            shift += 1
+        pattern.append(mask << c)
+    steps = 1000000000
+    start, end, occurences = do_solve_bitmask(
+            rows, steps, 34, pattern, len(floor[0])
+    )
+    # TODO: there are no precycle occurences in this
+    # task, so we could leave `occurences` as is, but
+    # this is obv not elegant
+    assert start == 0, "Cycle should start at 0"
+    base = end - start
+    print("Cycle length:", base)
+    print(occurences)
+
+    full_cycles = steps // base
+    full = sum(x[1] for x in occurences)
+    rem = steps % base
+    last_cycle = sum(x[1] for x in occurences if x[0] < rem)
+    return full_cycles*full + last_cycle
+
+
 app.run()
