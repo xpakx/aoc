@@ -51,33 +51,85 @@ def count(tbl):
     return result
 
 
-def part1(floor):
-    print(floor)
+def solve_lists(floor, steps):
     old = [[tile == Tile.active for tile in row] for row in floor]
     next = [[False for tile in row] for row in floor]
     result = 0
-    for i in range(10):
+    for i in range(steps):
         check_neighbours(old, next)
         result += count(next)
-        print(count(next))
         old, next = next, old
         clean_table(next)
-    print(next)
-    print(result)
     return result
+
+
+def print_bin(num):
+    print(''.join(reversed(format(num, '#036b')[2:])))
+
+
+def check_neighbours_bin(old, new, width_mask):
+    for i, row in enumerate(old[1:-1]):
+        curr = i + 1
+        prev = (old[curr-1] << 1) ^ (old[curr-1] >> 1)
+        next = (old[curr+1] << 1) ^ (old[curr+1] >> 1)
+        mask = prev ^ next
+        new[curr] = ~(mask ^ row) & width_mask
+
+
+def clean_table_bin(tbl):
+    for i in range(len(tbl)):
+        tbl[i] = 0
+
+
+def count_bin(tbl):
+    result = 0
+    for row in tbl:
+        result += row.bit_count()
+    return result
+
+
+def solve_bitmask(floor, steps):
+    rows = []
+    for row in floor:
+        mask = 0
+        shift = 0
+        for tile in row:
+            if tile == Tile.active:
+                mask |= (1 << shift)
+            shift += 1
+        rows.append(mask)
+    rows = [0] + rows + [0]
+    next = [0 for row in floor]
+    next = [0] + next + [0]
+    result = 0
+    width_mask = (1 << len(floor[0])) - 1
+    for i in range(steps):
+        check_neighbours_bin(rows, next, width_mask)
+        result += count_bin(next)
+        rows, next = next, rows
+        clean_table_bin(next)
+    return result
+
+
+def part1(floor):
+    return solve_bitmask(floor, 10)
 
 
 def part2(floor):
-    old = [[tile == Tile.active for tile in row] for row in floor]
-    next = [[False for tile in row] for row in floor]
-    result = 0
-    for i in range(2025):
-        check_neighbours(old, next)
-        result += count(next)
-        old, next = next, old
-        clean_table(next)
-    return result
+    return solve_bitmask(floor, 2025)
 
 
 app = AdventDay()
+
+
+@app.task(1)
+def part1_lists(floor):
+    return solve_lists(floor, 10)
+
+
+@app.task(2)
+def part2_lists(floor):
+    return solve_lists(floor, 2025)
+
+
 app.run()
