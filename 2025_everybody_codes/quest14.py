@@ -67,5 +67,17 @@ def part1(floor):
     return result
 
 
+def part2(floor):
+    old = [[tile == Tile.active for tile in row] for row in floor]
+    next = [[False for tile in row] for row in floor]
+    result = 0
+    for i in range(2025):
+        check_neighbours(old, next)
+        result += count(next)
+        old, next = next, old
+        clean_table(next)
+    return result
+
+
 app = AdventDay()
 app.run()
