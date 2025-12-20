@@ -10,11 +10,8 @@ def load1(filename):
 
 def part1(nums):
     base = len(nums) + 1
-    print(base)
     curr = 2025 % base
     reshaped = [1] + nums[::2] + nums[1::2][::-1]
-    print(nums)
-    print(reshaped)
     return reshaped[curr]
 
 
@@ -39,20 +36,26 @@ def load(filename):
     return parse(Range, "{start}-{end}", data)
 
 
-def part2(ranges):
+def solve_ranges(ranges: list[Range], steps: int):
     first_part = ranges[::2]
     second_part = ranges[1::2][::-1]
     for r in second_part:
         r.reversed = True
     ranges = [Range(1, 1)] + first_part + second_part
-    print(ranges)
     base = sum(r.length for r in ranges)
-    print(base)
-    curr = 20252025 % base
+    curr = steps % base
     for r in ranges:
         if curr < r.length:
             return r.get(curr)
         curr -= r.length
+
+
+def part2(ranges):
+    return solve_ranges(ranges, 20252025)
+
+
+def part3(ranges):
+    return solve_ranges(ranges, 202520252025)
 
 
 app = AdventDay()
