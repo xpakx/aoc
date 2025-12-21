@@ -40,5 +40,30 @@ def part2(nums):
     return math.prod(result)
 
 
+def part3(nums):
+    blocks = 202520252025000
+    spell = []
+    sieve = Sieve(len(nums))
+    for i, val in enumerate(nums):
+        num = i+1
+        v = val - sieve.get(num)
+        if v > 0:
+            spell.append(num)
+            sieve.use(num)
+
+    start = 0
+    end = blocks
+    while start <= end:
+        middle = start + (end - start) // 2
+        b = sum([middle // x for x in spell])
+        if b == blocks:
+            return middle
+        if b < blocks:
+            start = middle + 1
+        else:
+            end = middle - 1
+    return end
+
+
 app = AdventDay()
 app.run()
