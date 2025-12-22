@@ -66,13 +66,13 @@ dirs = [
 
 
 def shortest_path_around(data, check_map, start, volcano, radius):
-    heap = [(0, start, 0b0000)]
+    heap = [(0, start, 0)]
     r2 = radius**2
     min_dist = {}
     time = (radius+1)*30
     while heap:
-        distance, node, quadr = heapq.heappop(heap)
-        if node == start and quadr == 0b1111:
+        distance, node, winding = heapq.heappop(heap)
+        if node == start and winding != 0:
             return distance, node
 
         for dir in dirs:
@@ -87,22 +87,22 @@ def shortest_path_around(data, check_map, start, volcano, radius):
             if cost >= time:
                 continue
 
-            new_quadr = quadr
-            if neighbor[0] < volcano[0] and neighbor[1] < volcano[1]:
-                new_quadr |= 0b1000
-            if neighbor[0] > volcano[0] and neighbor[1] < volcano[1]:
-                new_quadr |= 0b0100
-            if neighbor[0] < volcano[0] and neighbor[1] > volcano[1]:
-                new_quadr |= 0b0010
-            if neighbor[0] > volcano[0] and neighbor[1] > volcano[1]:
-                new_quadr |= 0b0001
-            key = (neighbor, new_quadr)
+            new_winding = winding
+            if node[0] < volcano[0] and neighbor[0] < volcano[0]:
+                if node[1] < volcano[1] and neighbor[1] >= volcano[1]:
+                    new_winding += 1
+                elif node[1] >= volcano[1] and neighbor[1] < volcano[1]:
+                    new_winding -= 1
+            if abs(new_winding) > 1:
+                continue
+            key = (neighbor, new_winding)
+
             if key in min_dist and min_dist[key] <= cost:
                 continue
             min_dist[key] = cost
             heapq.heappush(
                     heap,
-                    (cost, neighbor, new_quadr)
+                    (cost, neighbor, new_winding)
             )
     return -1, None
 
@@ -129,12 +129,10 @@ app = AdventDay()
 @app.test(330, file="data/day17/e2", desc="test 2")
 @app.test(3180, file="data/day17/e3", desc="test 3")
 def part3(data, volcano, start):
-    print(start, volcano)
     check_map = make_check_map(data, volcano)
     for i in range(1, 50):
         dist, node = shortest_path_around(data, check_map, start, volcano, i)
         if dist > 0:
-            print(dist, i)
             return dist*i
 
 
