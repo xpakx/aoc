@@ -1,6 +1,6 @@
 from utils.runner import AdventDay
 from utils.loader import get_file
-from collections import deque
+import heapq
 
 
 def load(filename):
@@ -65,35 +65,77 @@ dirs = [
 ]
 
 
-def shortest_path_to(data, check_map, start, volcano, radius):
-    queue = deque([(0, start)])
+def shortest_path_around(data, check_map, start, volcano, radius):
+    heap = [(0, start, 0b0000)]
     r2 = radius**2
-    visited = set(start)
-    while queue:
-        distance, node = queue.popleft()
-        if node[0] > volcano[0] and node[1] == volcano[1]:
+    min_dist = {}
+    time = (radius+1)*30
+    while heap:
+        distance, node, quadr = heapq.heappop(heap)
+        if node == start and quadr == 0b1111:
             return distance, node
-        if node[0] < 0 or node[1] < 0:
-            continue
-        if node[0] >= len(data) or node[1] >= len(data[0]):
-            continue
-        if check_map[node[0]][node[1]] <= r2:
-            continue
 
         for dir in dirs:
             neighbor = (node[0]+dir[0], node[1]+dir[1])
-            cost = data[node[0]][node[1]]
-            if neighbor in visited:
+            if neighbor[0] < 0 or neighbor[1] < 0:
                 continue
-            visited.add(neighbor)
-            queue.append((distance + cost, neighbor))
+            if neighbor[0] >= len(data) or neighbor[1] >= len(data[0]):
+                continue
+            if check_map[neighbor[0]][neighbor[1]] <= r2:
+                continue
+            cost = distance + data[neighbor[0]][neighbor[1]]
+            if cost >= time:
+                continue
+
+            new_quadr = quadr
+            if neighbor[0] < volcano[0] and neighbor[1] < volcano[1]:
+                new_quadr |= 0b1000
+            if neighbor[0] > volcano[0] and neighbor[1] < volcano[1]:
+                new_quadr |= 0b0100
+            if neighbor[0] < volcano[0] and neighbor[1] > volcano[1]:
+                new_quadr |= 0b0010
+            if neighbor[0] > volcano[0] and neighbor[1] > volcano[1]:
+                new_quadr |= 0b0001
+            key = (neighbor, new_quadr)
+            if key in min_dist and min_dist[key] <= cost:
+                continue
+            min_dist[key] = cost
+            heapq.heappush(
+                    heap,
+                    (cost, neighbor, new_quadr)
+            )
     return -1, None
 
 
-def part3(data, start):
-    check_map = make_check_map(data, start)
-    return shortest_path_to(data, check_map, (0, 0), start, 1)
+def load3(filename):
+    data = get_file(filename)
+    start = (0, 0)
+    volcano = (0, 0)
+    for i, row in enumerate(data):
+        data[i] = [int(x) if x not in ['@', 'S'] else 0 for x in row]
+        if '@' in row:
+            j = row.index('@')
+            volcano = (i, j)
+        if 'S' in row:
+            j = row.index('S')
+            start = (i, j)
+    return data, volcano, start
 
 
 app = AdventDay()
+
+
+@app.test(592, file="data/day17/example3", desc="test 1")
+@app.test(330, file="data/day17/e2", desc="test 2")
+@app.test(3180, file="data/day17/e3", desc="test 3")
+def part3(data, volcano, start):
+    print(start, volcano)
+    check_map = make_check_map(data, volcano)
+    for i in range(1, 50):
+        dist, node = shortest_path_around(data, check_map, start, volcano, i)
+        if dist > 0:
+            print(dist, i)
+            return dist*i
+
+
 app.run()
