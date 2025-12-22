@@ -278,7 +278,7 @@ class AdventDay:
         self.term.indent(2)
 
         for test in tests:
-            data = self._get_test_data(test)
+            data = self._get_test_data(test, part_num)
             all_passed = True
             err = False
             actual = None
@@ -312,14 +312,14 @@ class AdventDay:
         print()
         self.term.dedent(2)
 
-    def _get_test_data(self, test: TestCase):
+    def _get_test_data(self, test: TestCase, part):
         if test.input_file is not None and test.input_data is not None:
             self.term.warn("Both input data and file are defined. Using file.")
         data = None
         if test.input_file:
             try:
                 data = load_data(
-                        self.day, 0, self.loader, self.loaders, False,
+                        self.day, part, self.loader, self.loaders, False,
                         filename=test.input_file,
                 )
             except FileNotFoundError as e:
