@@ -19,11 +19,9 @@ class Plant:
 
 
 def get_all_ints(line):
-    return [int(s) for s in re.findall(r'\d+', line)]
+    return [int(s) for s in re.findall(r'-?\d+', line)]
 
-
-def load(filename):
-    data = get_file(filename, split_by="\n\n")
+def get_plants(data):
     plants = {}
     have_connections = set()
     for plant in data:
@@ -46,14 +44,30 @@ def load(filename):
     return plants, last
 
 
-def traverse(plant: Plant, plants: dict[int, Plant]):
+def load1(filename):
+    data = get_file(filename, split_by="\n\n")
+    return get_plants(data)
+
+
+def load2(filename):
+    data = get_file(filename, split_by="\n\n")
+    plants, last = get_plants(data[:-1])
+    instructions = []
+    for instr in data[-1].split('\n'):
+        inst = {i+1: num for i, num in enumerate(get_all_ints(instr))}
+        instructions.append(inst)
+    return plants, last, instructions
+
+
+def traverse(plant: Plant, plants: dict[int, Plant], end=None):
     brightness = 0
     for branch in plant.branches:
         if branch.dest is None:
-            brightness += 1
+            if end is None or end[plant.id] == 1:
+                brightness += branch.thickness
         else:
             brightness += branch.thickness*traverse(
-                    plants.get(branch.dest), plants)
+                    plants.get(branch.dest), plants, end)
     if brightness < plant.thickness:
         return 0
     return brightness
@@ -61,6 +75,10 @@ def traverse(plant: Plant, plants: dict[int, Plant]):
 
 def part1(data, last):
     return traverse(data[last], data)
+
+
+def part2(data, last, instr):
+    return sum([traverse(data[last], data, i) for i in instr])
 
 
 app = AdventDay()
