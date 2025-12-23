@@ -4,6 +4,7 @@ from utils.parser import parse
 from dataclasses import dataclass
 import heapq
 from collections import defaultdict
+from math import ceil
 
 
 @dataclass
@@ -60,6 +61,18 @@ def part1(data):
 
 def part2(data):
     return shortest_path(data)
+
+
+# TODO: that doesn't work for every input and assumes
+# lots of things
+def part3(data):
+    max_xy = 0
+    furthest_x = 0
+    for column in data:
+        if column.position > furthest_x:
+            furthest_x = column.position
+            max_xy = max(column.position + column.height, max_xy)
+    return ceil(max_xy / 2)
 
 
 app = AdventDay()
