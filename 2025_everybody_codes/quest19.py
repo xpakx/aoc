@@ -3,6 +3,7 @@ from utils.loader import get_file
 from utils.parser import parse
 from dataclasses import dataclass
 import heapq
+from collections import defaultdict
 
 
 @dataclass
@@ -10,6 +11,9 @@ class Column:
     position: int
     height: int
     gap: int
+
+    def in_gap(self, height):
+        return height >= self.height and height < self.height + self.gap
 
 
 def load(filename):
@@ -20,14 +24,16 @@ def load(filename):
 moves = [-1, 1]
 
 
-def in_gap(height, column):
-    return height >= column.height and height < column.height + column.gap
+def in_gap(height, columns):
+    return any([col.in_gap(height) for col in columns])
 
 
 def shortest_path(columns: list[Column]):
     heap = [(0, 0, 0)]
     goal = columns[-1].position
-    column_map = {col.position: col for col in columns}
+    column_map = defaultdict(list)
+    for col in columns:
+        column_map[col.position].append(col)
     visited = set()
     while heap:
         flaps, position, height = heapq.heappop(heap)
@@ -40,10 +46,8 @@ def shortest_path(columns: list[Column]):
             if (new_pos, new_height) in visited:
                 continue
             visited.add((new_pos, new_height))
-            if new_height < 0 or new_height > 40:
-                continue
-            column = column_map.get(new_pos)
-            if column and not in_gap(new_height, column):
+            columns = column_map.get(new_pos)
+            if columns and not in_gap(new_height, columns):
                 continue
             cost = flaps + ((move + 1) // 2)
             heapq.heappush(heap, (cost, new_pos, new_height))
@@ -51,6 +55,10 @@ def shortest_path(columns: list[Column]):
 
 
 def part1(data):
+    return shortest_path(data)
+
+
+def part2(data):
     return shortest_path(data)
 
 
