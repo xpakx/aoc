@@ -38,5 +38,24 @@ def task2(words, inscriptions):
     return result
 
 
+def task3(words, inscriptions):
+    words.extend([x[::-1] for x in words])
+    test = set()
+    for i, ins in enumerate(inscriptions):
+        curr_test = set()
+        for word in words:
+            curr_ins = ins + ins[:len(word)-1]
+            find_word(curr_ins, word, curr_test)
+        test.update([(i, x % len(ins)) for x in curr_test])
+    transposed = ["".join(col) for col in zip_longest(*inscriptions, fillvalue="")]
+    for i, ins in enumerate(transposed):
+        curr_test = set()
+        for word in words:
+            curr_ins = ins
+            find_word(curr_ins, word, curr_test)
+        test.update([(x, i) for x in curr_test])
+    return len(test)
+
+
 app = AdventDay()
 app.run()
