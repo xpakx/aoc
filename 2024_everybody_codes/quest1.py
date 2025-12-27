@@ -29,5 +29,21 @@ def task2(data):
     return result
 
 
+def is_empty(insect):
+    return insect == 'x'
+
+
+def task3(data):
+    result = 0
+    for first, second, third in zip(data[::3], data[1::3], data[2::3]):
+        result += cost_of(first) + cost_of(second) + cost_of(third)
+        insects = sum([not is_empty(i) for i in [first, second, third]])
+        if insects == 2:
+            result += 2
+        elif insects == 3:
+            result += 6
+    return result
+
+
 app = AdventDay()
 app.run()
