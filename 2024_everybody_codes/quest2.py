@@ -18,5 +18,25 @@ def task1(words, inscriptions):
     return result
 
 
+def find_word(inscription, word, test_set):
+    idx = inscription.find(word)
+    while idx >= 0:
+        for i in range(idx, idx + len(word)):
+            test_set.add(i)
+        idx = inscription.find(word, idx + 1)
+
+
+def task2(words, inscriptions):
+    result = 0
+    words.extend([x[::-1] for x in words])
+    test = set()
+    for ins in inscriptions:
+        for word in words:
+            find_word(ins, word, test)
+        result += len(test)
+        test.clear()
+    return result
+
+
 app = AdventDay()
 app.run()
