@@ -58,5 +58,9 @@ def task1(cells):
     return result
 
 
+def task2(cells):
+    return task1(cells)
+
+
 app = AdventDay()
 app.run()
