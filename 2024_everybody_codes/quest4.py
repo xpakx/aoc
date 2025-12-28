@@ -11,5 +11,9 @@ def task1(data):
     return sum([x - m for x in data])
 
 
+def task2(data):
+    return task1(data)
+
+
 app = AdventDay()
 app.run()
