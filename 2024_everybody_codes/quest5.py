@@ -18,8 +18,8 @@ def cycle(data, i):
     num = row.pop(0)
     next_row = data[(i+1) % len(data)]
 
-    moves = num - 1
-    if num > len(next_row):
+    moves = abs((num % (2*len(next_row))) - 1)
+    if moves > len(next_row):
         moves = 2*len(next_row) - moves
     next_row.insert(moves, num)
 
@@ -46,6 +46,23 @@ def task2(data):
         else:
             mem[num] = n
         i += 1
+
+
+def task3(data):
+    max = 0
+    i = 0
+    visited = set()
+    while True:
+        cycle(data, i)
+        key = tuple(tuple(row) for row in data)
+        if key in visited:
+            break
+        visited.add(key)
+        i += 1
+        num = int("".join([str(x) for x in shouted(data)]))
+        if num > max:
+            max = num
+    return max
 
 
 app = AdventDay()
