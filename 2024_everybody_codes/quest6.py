@@ -33,6 +33,24 @@ def task1(graph):
             return fruit_paths[fruit]
 
 
+def task2(graph):
+    nodes = [('RR', 0, 'R')]
+    fruits = {}
+    fruit_paths = {}
+    while nodes:
+        fruit, path_len, path = nodes.pop()
+        next = graph.get(fruit)
+        if next is None:
+            continue
+        if '@' in next:
+            fruits[fruit] = path_len+1
+            fruit_paths[fruit] = path + '@'
+        new = [(n, path_len+1, path + n[0]) for n in next if n != '@']
+        nodes.extend(new)
+    value_counts = Counter(fruits.values())
+    for fruit, val in fruits.items():
+        if value_counts[val] == 1:
+            return fruit_paths[fruit]
 
 
 app = AdventDay()
