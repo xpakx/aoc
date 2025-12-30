@@ -2,6 +2,7 @@ from utils.loader import get_file
 from utils.runner import AdventDay
 from utils.parser import parse
 from dataclasses import dataclass
+import itertools
 
 
 @dataclass
@@ -125,24 +126,33 @@ def construct_path(grid):
             if pos in visited:
                 continue
             visited.add(pos)
-            if grid[x][y] == 'S':
-                return path
             path.append(grid[x][y])
             current = pos
             no_way_further = True
+    return path
 
 
 def load3(filename):
     plans, track = get_file(filename, split_by='\n\n')
-    opponent = parse(Plan, "{id}:{actions}", [plans], list_separator=',')
+    opponent = parse(Plan, "{id}:{actions}", [plans], list_separator=',')[0]
     track = track.split('\n')
     path = construct_path(track)
     return opponent, Track(path)
 
 
-def task3(opponent, track):
-    print(opponent)
-    print(track)
+def task3(opponent: Plan, track: Track):
+    track.set_plan(opponent)
+    to_beat = track.process(10, 2024)
+    options = set(itertools.permutations('+++++---==='))
+    result = 0
+    print(len(options))
+    for opt in options:
+        plan = Plan('A', opt)
+        track.set_plan(plan)
+        points = track.process(10, 2024)
+        if points > to_beat:
+            result += 1
+    return result
 
 
 app = AdventDay()
