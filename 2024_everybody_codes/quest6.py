@@ -1,6 +1,6 @@
 from utils.loader import get_file
 from utils.runner import AdventDay
-from collections import Counter
+from collections import Counter, deque
 
 
 def load(filename):
@@ -74,4 +74,27 @@ def task3(graph):
 
 
 app = AdventDay()
+
+
+@app.task(part=3)
+def task3_bfs(graph):
+    queue = deque([('RR', 0, {'RR'}, 'R')])
+    while queue:
+        level_fruits = {}
+        for _ in range(len(queue)):
+            curr, dist, visited, path = queue.popleft()
+            neighbors = graph.get(curr, [])
+            if not neighbors:
+                continue
+            for n in neighbors:
+                if n == '@':
+                    level_fruits[path + '@'] = dist + 1
+                elif n not in visited:
+                    new_visited = visited | {n}
+                    queue.append((n, dist + 1, new_visited, path + n[0]))
+        if level_fruits:
+            if len(level_fruits) == 1:
+                return list(level_fruits.keys())[0]
+
+
 app.run()
