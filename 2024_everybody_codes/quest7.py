@@ -24,12 +24,9 @@ class Plan:
     def process(self, init_num: int, steps: int) -> int:
         num = init_num
         result = 0
-        print(self.id, end=': ')
         for i in range(steps):
             num = self.action(i, num)
-            print(num, end=' ')
             result += num
-        print()
         return result
 
 
@@ -42,7 +39,7 @@ def load1(filename):
 def task1(data):
     results = [(p.process(10, 10), p) for p in data]
     results.sort(key=lambda p: p[0], reverse=True)
-    print(results)
+    print([(r, p.id) for r, p in results])
     names = [p.id for _, p in results]
     return "".join(names)
 
@@ -71,12 +68,9 @@ class Track:
     def process(self, init_num: int, loops: int = 1) -> int:
         num = init_num
         result = 0
-        print(self.plan.id, end=': ')
         for i in range(1, loops*len(self.actions) + 1):
             num = self.action(i, num)
-            print(num, end=' ')
             result += num
-        print()
         assert self.get_current(i) == 'S'
         return result
 
@@ -96,7 +90,6 @@ def load2(filename):
 
 
 def task2(plans, track):
-    print(track.actions)
     results = []
     for plan in plans:
         track.set_plan(plan)
@@ -106,6 +99,50 @@ def task2(plans, track):
     print([(r, p.id) for r, p in results])
     names = [p.id for _, p in results]
     return "".join(names)
+
+
+dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+
+
+def construct_path(grid):
+    current = (0, 0)
+    visited = set()
+    visited.add(current)
+    path = ['S']
+    no_way_further = True
+    while no_way_further:
+        no_way_further = False
+        for dir in dirs:
+            x = current[0] + dir[0]
+            y = current[1] + dir[1]
+            if x < 0 or y < 0:
+                continue
+            if x >= len(grid) or y >= len(grid[x]):
+                continue
+            if grid[x][y] == ' ':
+                continue
+            pos = (x, y)
+            if pos in visited:
+                continue
+            visited.add(pos)
+            if grid[x][y] == 'S':
+                return path
+            path.append(grid[x][y])
+            current = pos
+            no_way_further = True
+
+
+def load3(filename):
+    plans, track = get_file(filename, split_by='\n\n')
+    opponent = parse(Plan, "{id}:{actions}", [plans], list_separator=',')
+    track = track.split('\n')
+    path = construct_path(track)
+    return opponent, Track(path)
+
+
+def task3(opponent, track):
+    print(opponent)
+    print(track)
 
 
 app = AdventDay()
