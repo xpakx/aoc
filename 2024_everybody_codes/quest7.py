@@ -142,14 +142,24 @@ def load3(filename):
 
 def task3(opponent: Plan, track: Track):
     track.set_plan(opponent)
-    to_beat = track.process(10, 2024)
+    # let x = LCM(track_len, plan_len)
+    # then, assuming, power never drops below 0
+    # every x steps yield the same power gain.
+    # x steps make n loops where:
+    # n = x/track_len = plan_len
+    # so if final number of loops we need to calculate
+    # is divisable by plan_len, then we could just
+    # calculate for plan_len cycles
+    # plan_len = 11, track_len = 340
+    # 2024 is indeed divisable by 11
+    to_beat = track.process(10, 11)
     options = set(itertools.permutations('+++++---==='))
     result = 0
     print(len(options))
     for opt in options:
         plan = Plan('A', opt)
         track.set_plan(plan)
-        points = track.process(10, 2024)
+        points = track.process(10, 11)
         if points > to_beat:
             result += 1
     return result
