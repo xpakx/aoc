@@ -22,5 +22,24 @@ def task1(data):
     return to_buy*floor
 
 
+def layer(number, priests, acolytes):
+    return (number * priests) % acolytes
+
+
+def task2(priests):
+    blocks = 20240000
+    curr = 1
+    blocks -= curr
+    layer_num = 1
+    while blocks > 0:
+        layer_num += 1
+        curr = layer(curr, priests, 1111)
+        blocks_used = 2*layer_num - 1
+        blocks -= blocks_used*curr
+    floor = 2*(layer_num-1) + 1
+    print(-blocks, floor)
+    return -blocks*floor
+
+
 app = AdventDay()
 app.run()
