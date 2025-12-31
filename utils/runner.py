@@ -181,6 +181,7 @@ class AdventDay:
                 factor = result.time / main_result.time
                 self.term.red()
                 self.term.print(f"[{factor:.1f}x slower]")
+            self.term.println('')
 
         self.term.dedent(2)
 
