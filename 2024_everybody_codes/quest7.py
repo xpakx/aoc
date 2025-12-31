@@ -140,7 +140,11 @@ def load3(filename):
     return opponent, Track(path)
 
 
-def task3(opponent: Plan, track: Track):
+app = AdventDay()
+
+
+@app.task(part=3)
+def task3_simulated(opponent: Plan, track: Track):
     track.set_plan(opponent)
     # let x = LCM(track_len, plan_len)
     # then, assuming, power never drops below 0
@@ -165,5 +169,58 @@ def task3(opponent: Plan, track: Track):
     return result
 
 
-app = AdventDay()
+def task3(opponent: Plan, track: Track):
+    cycle_len = 11 * len(track.actions)
+
+    # calculate how many times this step's
+    # value contribute to the total sum
+    # for the 11 plan positions
+    # during 11 loops;
+    # i.e. when it is not -/+
+    # it contributes to all steps in the future
+    weights = [0] * 11
+    for i in range(1, cycle_len + 1):
+        act = track.get_current(i)
+        if act not in ('+', '-'):
+            weights[(i-1) % 11] += (cycle_len - i + 1)
+
+    # calculate the opponent's plan contribution
+    val_map = {'+': 1, '-': -1, '=': 0}
+    opp_vals = [val_map[a] for a in opponent.actions]
+    target_contribution = sum(v * w for v, w in zip(opp_vals, weights))
+
+    # DP to count ways to arrange 5 '+', 3 '-', 3 '='
+    # to beat the target
+    # dp[(curr index, alloc pluses, alloc minuses)] = {score: count}
+    dp = {(0, 0, 0): {0: 1}}
+
+    for i in range(11):
+        w = weights[i]
+        new_dp = {}
+        for (idx, p, m), scores in dp.items():
+            for score, count in scores.items():
+                # adding '+' at pos i
+                if p < 5:
+                    key = (i+1, p+1, m)
+                    current = new_dp.setdefault(key, {})
+                    current[score + w] = current.get(score+w, 0) + count
+                # adding '-' at pos i
+                if m < 3:
+                    key = (i+1, p, m+1)
+                    current = new_dp.setdefault(key, {})
+                    current[score - w] = current.get(score-w, 0) + count
+                # adding '=' at pos i
+                if (i - p - m) < 3:
+                    key = (i+1, p, m)
+                    current = new_dp.setdefault(key, {})
+                    current[score] = current.get(score, 0) + count
+        dp = new_dp
+
+    total_count = 0
+    for score, count in dp[(11, 5, 3)].items():
+        if score > target_contribution:
+            total_count += count
+    return total_count
+
+
 app.run()
