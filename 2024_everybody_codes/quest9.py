@@ -59,5 +59,31 @@ def task2(brightness):
     return result
 
 
+def count_split(brightness, stamps):
+    half = brightness // 2
+    rest = brightness - half
+    min = 9999999
+    for i in range(51 - brightness % 2):
+        first = stamps_for2(half-i, stamps)
+        second = stamps_for2(rest+i, stamps)
+        result = first + second
+        if result < min:
+            min = result
+    return min
+
+
+def task3(brightness):
+    stamps_for2.cache_clear()
+    stamps = [
+            1, 3, 5, 10, 15, 16, 20, 24, 25, 30, 37, 38, 49, 50, 74, 75, 100, 101
+    ]
+    stamps.reverse()
+    stamps = tuple(stamps)
+    result = 0
+    for b in brightness:
+        result += count_split(b, stamps)
+    return result
+
+
 app = AdventDay()
 app.run()
