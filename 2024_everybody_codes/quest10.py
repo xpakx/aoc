@@ -79,36 +79,26 @@ def solve_questionmarks(fragment):
         for j, cell in enumerate(row):
             if cell == '.':
                 column = [x[j] for x in fragment]
-                unique = []
-                col = False
-                if '?' in column:
-                    unique = get_unique(row)
-                    col = True
-                elif '?' in row:
-                    unique = get_unique(column)
+                unique = get_unique(row + column)
                 if len(unique) == 1:
                     fragment[i][j] = unique[0]
-                    if col:
-                        for x, _ in enumerate(fragment):
-                            if fragment[x][j] == '?':
-                                fragment[x][j] = unique[0]
-                                break
-                    else:
-                        for x, _ in enumerate(fragment[i]):
-                            if fragment[i][x] == '?':
-                                fragment[i][x] = unique[0]
-                                break
+                    for x, _ in enumerate(fragment):
+                        if fragment[x][j] == '?':
+                            fragment[x][j] = unique[0]
+                    for x, _ in enumerate(fragment[i]):
+                        if fragment[i][x] == '?':
+                            fragment[i][x] = unique[0]
 
 
 def try_solve_fragment(data, i, j):
     fragment = [row[j:j+8] for row in data[i:i+8]]
-    print_fragment(fragment)
+    # print_fragment(fragment)
     solve_basic(fragment)
-    print()
-    print_fragment(fragment)
+    # print()
+    # print_fragment(fragment)
     solve_questionmarks(fragment)
-    print()
-    print_fragment(fragment)
+    # print()
+    # print_fragment(fragment)
     for r in range(8):
         data[i + r][j: j + 8] = fragment[r]
     for row in fragment:
@@ -130,10 +120,11 @@ def get_word(data, i, j):
 
 
 def task3(data):
-    run = True
     solved = set()
-    while run:
-        run = False
+    current = tuple(tuple(row) for row in data)
+    last = None
+    while current != last:
+        last = current
         for i in range(0, len(data)-2, 6):
             for j in range(0, len(data[i])-2, 6):
                 if (i, j) in solved:
@@ -141,9 +132,9 @@ def task3(data):
                 solvable = try_solve_fragment(data, i, j)
                 if solvable:
                     solved.add((i, j))
-                    run = True
+        current = tuple(tuple(row) for row in data)
 
-    print_fragment(data)
+    # print_fragment(data)
 
     result = 0
     for i, j in solved:
@@ -152,8 +143,19 @@ def task3(data):
         print(word)
         print(power)
         result += power
-    return result
 
+    print()
+    for i in range(0, len(data)-2, 6):
+        for j in range(0, len(data[i])-2, 6):
+            if (i, j) in solved:
+                print('#', end='')
+            else:
+                print('.', end='')
+        print()
+
+    print()
+    print_fragment(data)
+    return result
 
 
 app = AdventDay()
