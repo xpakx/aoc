@@ -27,5 +27,17 @@ def task1(data):
     return len(current)
 
 
+def task2(data):
+    map = {x.id: x for x in data}
+    current = ['Z']
+    for _ in range(10):
+        new_current = []
+        for termite in current:
+            curr = map.get(termite)
+            new_current.extend(curr.conversions)
+        current = new_current
+    return len(current)
+
+
 app = AdventDay()
 app.run()
