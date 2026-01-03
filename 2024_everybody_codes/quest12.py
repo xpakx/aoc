@@ -38,5 +38,20 @@ def task1(targets, segments):
     return result
 
 
+def task2(targets, segments):
+    result = 0
+    for t0, t1 in targets:
+        for key, (s0, s1) in segments.items():
+            power = t1+s0-s1-t0
+            if power/3 == power//3:
+                print(key, power//3, ord(key)-64)
+                result += (power//3)*(ord(key)-64)
+        print()
+    print(targets)
+    print(segments)
+    return result
+
+
+
 app = AdventDay()
 app.run()
