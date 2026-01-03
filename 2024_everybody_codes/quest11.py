@@ -12,31 +12,34 @@ class Termite:
 
 def load(filename):
     data = get_file(filename)
-    return parse(Termite, "{id}:{conversions}", data, list_separator=',')
+    parsed = parse(Termite, "{id}:{conversions}", data, list_separator=',')
+    return {x.id: x for x in parsed}
+
+
+def convert(map, start, steps):
+    counts = {start: 1}
+    for _ in range(steps):
+        new_counts = {}
+        for termite, count in counts.items():
+            curr = map.get(termite)
+            for t in curr.conversions:
+                new_counts.setdefault(t, 0)
+                new_counts[t] += count
+        counts = new_counts
+    return sum(counts.values())
 
 
 def task1(data):
-    map = {x.id: x for x in data}
-    current = ['A']
-    for _ in range(4):
-        new_current = []
-        for termite in current:
-            curr = map.get(termite)
-            new_current.extend(curr.conversions)
-        current = new_current
-    return len(current)
+    return convert(data, 'A', 4)
 
 
 def task2(data):
-    map = {x.id: x for x in data}
-    current = ['Z']
-    for _ in range(10):
-        new_current = []
-        for termite in current:
-            curr = map.get(termite)
-            new_current.extend(curr.conversions)
-        current = new_current
-    return len(current)
+    return convert(data, 'Z', 10)
+
+
+def task3(data):
+    results = [convert(data, x, 20) for x in data.keys()]
+    return max(results) - min(results)
 
 
 app = AdventDay()
