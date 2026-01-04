@@ -41,6 +41,7 @@ def find_path(start, data):
             if symbol == '#':
                 continue
             step_cost = abs(last_value - to_value(symbol))
+            step_cost = min(step_cost, 10 - step_cost)
             new_cost = cost + step_cost + 1
             if new_cost < min_costs.get(neighbor, float('inf')):
                 min_costs[neighbor] = new_cost
