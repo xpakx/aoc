@@ -1,12 +1,17 @@
 from utils.loader import get_file
 from utils.runner import AdventDay
-from collections import deque
 import heapq
 
 
 def load(filename):
     data = get_file(filename)
     start = [(i, row.index('S')) for i, row in enumerate(data) if 'S' in row]
+    return data, start[0]
+
+
+def load3(filename):
+    data = get_file(filename)
+    start = [(i, row.index('E')) for i, row in enumerate(data) if 'E' in row]
     return data, start[0]
 
 
@@ -26,7 +31,7 @@ def to_value(symbol):
     return ord(symbol)-48
 
 
-def find_path(start, data):
+def find_path(start, data, end='E'):
     queue = [(0, start)]
     heapq.heapify(queue)
     min_costs = {start: 0}
@@ -34,7 +39,7 @@ def find_path(start, data):
         cost, curr = heapq.heappop(queue)
         last = data[curr[0]][curr[1]]
         last_value = to_value(last)
-        if last == 'E':
+        if last == end:
             return cost
         for neighbor in neighbors(curr, data):
             symbol = data[neighbor[0]][neighbor[1]]
@@ -49,13 +54,15 @@ def find_path(start, data):
 
 
 def task1(data, start):
-    print(data)
-    print(start)
     return find_path(start, data)
 
 
 def task2(data, start):
     return find_path(start, data)
+
+
+def task3(data, start):
+    return find_path(start, data, 'S')
 
 
 app = AdventDay()
