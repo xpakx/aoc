@@ -54,5 +54,9 @@ def task1(data, start):
     return find_path(start, data)
 
 
+def task2(data, start):
+    return find_path(start, data)
+
+
 app = AdventDay()
 app.run()
