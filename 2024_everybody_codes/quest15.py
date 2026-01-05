@@ -1,6 +1,7 @@
 from utils.loader import get_file
 from utils.runner import AdventDay
 import heapq
+from collections import deque
 
 
 def load(filename):
@@ -40,27 +41,29 @@ def task1(data, start):
 
 
 def find_path2(start, data, herbs):
-    k = tuple([False]*len(herbs))
-    queue = [(0, start, k)]
-    heapq.heapify(queue)
-    min_costs = {(start, k): 0}
+    k = (1 << len(herbs)) - 1
+    queue = deque([(0, start, 0)])
+    visited = {(start, 0)}
     while queue:
-        cost, curr, found_herbs = heapq.heappop(queue)
-        if curr == start and all(found_herbs):
+        cost, curr, found_herbs = queue.popleft()
+        if curr == start and found_herbs == k:
             return cost
         for neighbor in neighbors(curr):
+            if neighbor[0] < 0:
+                continue
             symbol = data[neighbor[0]][neighbor[1]]
             if symbol == '#':
                 continue
             if symbol == '~':
                 continue
-            if neighbor[0] < 0:
-                continue
             val = ord(symbol) - 65
-            new_herbs = tuple([True if i == val else x for i, x in enumerate(found_herbs)])
-            if cost + 1 < min_costs.get((neighbor, new_herbs), float('inf')):
-                min_costs[(neighbor, new_herbs)] = cost + 1
-                heapq.heappush(queue, (cost+1, neighbor, new_herbs))
+            new_herbs = found_herbs
+            if 0 <= val < len(herbs):
+                new_herbs = new_herbs | (1 << val)
+            if (neighbor, new_herbs) in visited:
+                continue
+            visited.add((neighbor, new_herbs))
+            queue.append((cost+1, neighbor, new_herbs))
 
 
 def task2(data, start):
