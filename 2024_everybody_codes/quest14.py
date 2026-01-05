@@ -66,5 +66,17 @@ def task2(data):
     return len(segments)-1
 
 
+def task3(data):
+    start = (0, 0, 0)
+    leaves = set()
+    for branch in data:
+        seg = start
+        for x, y, z in branch:
+            seg = (seg[0]+x, seg[1]+y, seg[2]+z)
+        leaves.add(seg)
+    print(leaves)
+    return 0
+
+
 app = AdventDay()
 app.run()
