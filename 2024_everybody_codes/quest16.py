@@ -1,5 +1,7 @@
 from utils.loader import get_file
 from utils.runner import AdventDay
+from collections import Counter
+from math import lcm
 
 
 def load(filename):
@@ -26,6 +28,17 @@ def task1(wheels, nums):
     print(curr)
     result = [wheels[i][x] for i, x in enumerate(curr)]
     return " ".join(result)
+
+
+def task2(wheels, nums):
+    cycle = 1
+    for wheel in wheels:
+        cycle = lcm(len(wheel), cycle)
+    print(cycle)
+    steps = 202420242024
+    quotient = steps // cycle
+    remainder = steps % cycle
+    print(quotient, remainder)
 
 
 app = AdventDay()
