@@ -30,6 +30,25 @@ def task1(wheels, nums):
     return " ".join(result)
 
 
+def count(wheels, nums, steps):
+    curr = [0] * len(nums)
+    r = []
+    for _ in range(steps):
+        for i, _ in enumerate(curr):
+            mod = len(wheels[i])
+            change = nums[i]
+            curr[i] = (curr[i] + change) % mod
+        eyes = [wheels[i][x][0]+wheels[i][x][2] for i, x in enumerate(curr)]
+        result = ''.join(eyes)
+        counts = Counter(result)
+        coins = 0
+        for value in counts.values():
+            if value >= 3:
+                coins += value - 2
+        r.append(coins)
+    return r
+
+
 def task2(wheels, nums):
     cycle = 1
     for wheel in wheels:
@@ -38,7 +57,11 @@ def task2(wheels, nums):
     steps = 202420242024
     quotient = steps // cycle
     remainder = steps % cycle
-    print(quotient, remainder)
+    coins = count(wheels, nums, cycle)
+
+    first = sum([coins[i] for i in range(0, remainder)])
+    second = sum([coins[i] for i in range(remainder, cycle)])
+    return first + quotient * (first + second)
 
 
 app = AdventDay()
