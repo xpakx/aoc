@@ -17,8 +17,15 @@ def load(filename):
 
 
 def task1(wheels, nums):
-    print(wheels)
-    print(nums)
+    curr = [0] * len(nums)
+    for _ in range(100):
+        for i, _ in enumerate(curr):
+            mod = len(wheels[i])
+            change = nums[i]
+            curr[i] = (curr[i] + change) % mod
+    print(curr)
+    result = [wheels[i][x] for i, x in enumerate(curr)]
+    return " ".join(result)
 
 
 app = AdventDay()
