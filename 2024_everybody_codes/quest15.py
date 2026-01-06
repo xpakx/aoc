@@ -2,6 +2,7 @@ from utils.loader import get_file
 from utils.runner import AdventDay
 import heapq
 from collections import deque
+from itertools import product
 
 
 def load(filename):
@@ -73,6 +74,48 @@ def task2(data, start):
             if cell not in ['#', '~', '.']:
                 herbs.add(cell)
     return find_path2(start, data, herbs)
+
+
+def find_path3(start, data, herbs):
+    k = (1 << len(herbs)) - 1
+    queue = deque([(0, start, 0)])
+    visited = {(start, 0)}
+    max_herbs = 0
+    while queue:
+        cost,  curr, found_herbs = queue.popleft()
+        if curr == start and found_herbs == k:
+            return cost
+        for neighbor in neighbors(curr):
+            if neighbor[0] < 0:
+                continue
+            symbol = data[neighbor[0]][neighbor[1]]
+            if symbol == '#':
+                continue
+            if symbol == '~':
+                continue
+            val = ord(symbol) - 65
+            new_herbs = found_herbs
+            if 0 <= val < len(herbs):
+                new_herbs = new_herbs | (1 << val)
+            if (neighbor, new_herbs) in visited:
+                continue
+            herb_count = found_herbs.bit_count()
+            if herb_count + 2 < max_herbs:
+                continue
+            if herb_count > max_herbs:
+                max_herbs = herb_count
+
+            visited.add((neighbor, new_herbs))
+            queue.append((cost+1, neighbor, new_herbs))
+
+
+def task3(data, start):
+    herbs = set()
+    for row in data:
+        for cell in row:
+            if cell not in ['#', '~', '.']:
+                herbs.add(cell)
+    return find_path3(start, data, herbs)
 
 
 app = AdventDay()
