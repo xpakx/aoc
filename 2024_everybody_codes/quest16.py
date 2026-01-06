@@ -1,0 +1,25 @@
+from utils.loader import get_file
+from utils.runner import AdventDay
+
+
+def load(filename):
+    data = get_file(filename, split_by='\n\n')
+    nums = [int(x) for x in data[0].split(',')]
+    data = data[1].split('\n')
+    wheels_len = (len(data[0]) + 1) // 4
+    wheels = [[] for x in range(wheels_len)]
+    for row in data:
+        for i in range(0, len(row), 4):
+            if row[i] == ' ':
+                continue
+            wheels[i//4].append(row[i:i+3])
+    return wheels, nums
+
+
+def task1(wheels, nums):
+    print(wheels)
+    print(nums)
+
+
+app = AdventDay()
+app.run()
