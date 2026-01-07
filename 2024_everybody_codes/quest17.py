@@ -3,7 +3,7 @@ from utils.runner import AdventDay
 import heapq
 
 
-def load1(filename):
+def load(filename):
     data = get_file(filename)
     stars = []
     for i, row in enumerate(data):
@@ -48,6 +48,10 @@ def task1(stars):
             dist = manhattan(star, second)
             connections[star].append((dist, second))
     return spanning_tree(stars, connections) + len(stars)
+
+
+def task2(stars):
+    return task1(stars)
 
 
 app = AdventDay()
