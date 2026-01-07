@@ -75,6 +75,56 @@ def task2(data, palms, start, start2):
     return flood_fill([start, start2], data, palms)
 
 
+def load3(filename):
+    data = get_file(filename)
+    palms = 0
+    for i, row in enumerate(data):
+        for cell in row:
+            if cell == 'P':
+                palms += 1
+    return data, palms
+
+
+def palm_time(start, data, goal, best):
+    filled = set()
+    current = [start]
+    steps = 0
+    palms = 0
+    dist = 0
+    while current:
+        steps += 1
+        new_current = []
+        for elem in current:
+            for neighbor in neighbors(elem):
+                symbol = data[neighbor[0]][neighbor[1]]
+                if symbol == '#':
+                    continue
+                if neighbor in filled:
+                    continue
+                if symbol == 'P':
+                    palms += 1
+                    dist += steps
+                    if dist >= best:
+                        return None
+                filled.add(neighbor)
+                new_current.append(neighbor)
+        if palms == goal:
+            return dist
+        current = new_current
+    return None
+
+
+def task3(data, palms):
+    best_time = float('inf')
+    for i, row in enumerate(data):
+        for j, cell in enumerate(row):
+            if cell == '.':
+                time = palm_time((i, j), data, palms, best_time)
+                if time and time < best_time:
+                    best_time = time
+    return best_time
+
+
 app = AdventDay()
 app.run()
 
