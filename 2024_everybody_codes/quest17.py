@@ -1,10 +1,8 @@
 from utils.loader import get_file
 from utils.runner import AdventDay
-import heapq
-from collections import deque
 
 
-def load(filename):
+def load1(filename):
     data = get_file(filename)
     start = -1
     palms = 0
@@ -14,7 +12,7 @@ def load(filename):
         for cell in row:
             if cell == 'P':
                 palms += 1
-    return data, palms, (0, start)
+    return data, palms, (start, 0)
 
 
 dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]
@@ -26,7 +24,7 @@ def neighbors(elem):
 
 def flood_fill(start, data, goal):
     filled = set()
-    current = [start]
+    current = start
     steps = 0
     palms = 0
     while current:
@@ -34,16 +32,17 @@ def flood_fill(start, data, goal):
         new_current = []
         for elem in current:
             for neighbor in neighbors(elem):
+                if neighbor[0] < 0 or neighbor[1] < 0:
+                    continue
+                if neighbor[0] >= len(data) or neighbor[1] >= len(data[0]):
+                    continue
                 symbol = data[neighbor[0]][neighbor[1]]
                 if symbol == '#':
-                    continue
-                if neighbor[1] < 0:
                     continue
                 if neighbor in filled:
                     continue
                 if symbol == 'P':
                     palms += 1
-
                 filled.add(neighbor)
                 new_current.append(neighbor)
         if palms == goal:
@@ -53,7 +52,27 @@ def flood_fill(start, data, goal):
 
 
 def task1(data, palms, start):
-    return flood_fill(start, data, palms)
+    return flood_fill([start], data, palms)
+
+
+def load2(filename):
+    data = get_file(filename)
+    start = -1
+    start2 = -1
+    palms = 0
+    for i, row in enumerate(data):
+        if row[0] == '.':
+            start = i
+        if row[len(row)-1] == '.':
+            start2 = i
+        for cell in row:
+            if cell == 'P':
+                palms += 1
+    return data, palms, (start, 0), (start2, len(data[0])-1)
+
+
+def task2(data, palms, start, start2):
+    return flood_fill([start, start2], data, palms)
 
 
 app = AdventDay()
