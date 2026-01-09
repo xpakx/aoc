@@ -66,6 +66,13 @@ def find_path2(start, data):
         # print(steps, checkpoints, alt, curr, prev)
         if checkpoints == 3 and alt >= 10000 and curr == start:
             return steps
+
+        state_key = (curr, prev, checkpoints)
+
+        if state_key in best_states:
+            if best_states[state_key] > alt:
+                continue
+
         for neighbor in neighbors(curr):
             if neighbor[0] < 0:
                 continue
@@ -89,7 +96,9 @@ def find_path2(start, data):
             elif c == 2 and symbol == 'C':
                 c = 3
 
-            if new_alt < 0:
+            if new_alt < 9900:
+                continue
+            if new_alt > 10100:
                 continue
 
             state_key = (neighbor, curr, c)
