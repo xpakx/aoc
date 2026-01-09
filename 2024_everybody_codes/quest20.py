@@ -57,5 +57,53 @@ def part1(data, start):
     return find_path(start, data)
 
 
+def find_path2(start, data):
+    # steps, checkpoints, alt, pos, prev
+    queue = deque([(0, 10000, 0, start, None)])
+    best_states = {}
+    while queue:
+        steps, alt, checkpoints, curr, prev = queue.popleft()
+        # print(steps, checkpoints, alt, curr, prev)
+        if checkpoints == 3 and alt >= 10000 and curr == start:
+            return steps
+        for neighbor in neighbors(curr):
+            if neighbor[0] < 0:
+                continue
+            if neighbor == prev:
+                continue
+            symbol = data[neighbor[0]][neighbor[1]]
+            if symbol == '#':
+                continue
+            new_alt = alt
+            if symbol == '-':
+                new_alt -= 2
+            elif symbol == '+':
+                new_alt += 1
+            else:
+                new_alt -= 1
+            c = checkpoints
+            if c == 0 and symbol == 'A':
+                c = 1
+            elif c == 1 and symbol == 'B':
+                c = 2
+            elif c == 2 and symbol == 'C':
+                c = 3
+
+            if new_alt < 0:
+                continue
+
+            state_key = (neighbor, curr, c)
+
+            if state_key in best_states:
+                if best_states[state_key] >= new_alt:
+                    continue
+            best_states[state_key] = new_alt
+            queue.append((steps+1, new_alt, c, neighbor, curr))
+
+
+def part2(data, start):
+    return find_path2(start, data)
+
+
 app = AdventDay()
 app.run()
