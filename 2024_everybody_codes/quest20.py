@@ -156,15 +156,79 @@ def find_path_segment(start, data):
     return max_alt, dest
 
 
+def find_rest(start, alt, data):
+    queue = deque([(alt, start, None)])
+    max_dist = 0
+    best_states = {}
+    while queue:
+        altitude, curr, prev = queue.popleft()
+        if altitude == 0:
+            if max_dist < curr[0]:
+                max_dist = curr[0]
+            continue
+        for neighbor in neighbors(curr):
+            if neighbor[0] < 0 or neighbor[1] < 0:
+                continue
+            if neighbor[0] >= len(data) or neighbor[1] >= len(data[0]):
+                continue
+            if neighbor == prev:
+                continue
+            symbol = data[neighbor[0]][neighbor[1]]
+            if symbol == '#':
+                continue
+            new_alt = altitude
+            if symbol == '-':
+                new_alt -= 2
+            elif symbol == '+':
+                new_alt += 1
+            else:
+                new_alt -= 1
+            if new_alt < 0:
+                continue
+
+            state_key = (neighbor, curr)
+            if state_key in best_states:
+                if best_states[state_key] >= new_alt:
+                    continue
+            best_states[state_key] = new_alt
+            queue.append((new_alt, neighbor, curr))
+    return max_dist
+
+
 def part3(data, start):
+    new_data = []
+    # hack to avoid falling into local optimum
+    for _ in range(3):
+        for row in data:
+            new_data.append(row)
+    data = new_data
+    print(start)
     m = {}
     for i in range(len(data[0])-1):
         if i == 0:
             continue
-        start = (0, i)
-        alt, (_, y) = find_path_segment(start, data)
-        m[start] = ((0, y), 1000-alt+1)
+        curr_start = (0, i)
+        alt, (_, y) = find_path_segment(curr_start, data)
+        m[curr_start] = ((0, y), 1000-alt+1)
     print(m)
+
+    curr_alt = 384400
+    segment_counter = 0
+    curr = start
+    print(start)
+    while curr_alt > 0:
+        new, cost = m[curr]
+        if curr_alt <= cost:
+            break
+        curr_alt -= cost
+        curr = new
+        segment_counter += 1
+    print(segment_counter * len(data))
+    print(curr_alt)
+
+    rest = find_rest(curr, curr_alt, data)
+
+    return segment_counter * len(data) + rest
 
 
 app = AdventDay()
