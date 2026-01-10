@@ -29,7 +29,7 @@ def eni(n: int, exp: int, mod: int) -> int:
 
 
 def eni_for_note(note: Note) -> int:
-    result = eni(note.a, note.x, note.m) 
+    result = eni(note.a, note.x, note.m)
     result += eni(note.b, note.y, note.m)
     result += eni(note.c, note.z, note.m)
     return result
@@ -37,6 +37,23 @@ def eni_for_note(note: Note) -> int:
 
 def task1(data):
     return max([eni_for_note(x) for x in data])
+
+
+def eni2(n, exp, mod):
+    exps = range(max(exp-4, 0), exp+1)
+    out = [pow(n, e, mod) for e in exps]
+    return int("".join(map(str, reversed(out))))
+
+
+def eni_for_note2(note: Note) -> int:
+    result = eni2(note.a, note.x, note.m)
+    result += eni2(note.b, note.y, note.m)
+    result += eni2(note.c, note.z, note.m)
+    return result
+
+
+def task2(data):
+    return max([eni_for_note2(x) for x in data])
 
 
 app = AdventDay()
