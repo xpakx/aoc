@@ -21,12 +21,14 @@ class Node:
     level: int = 0
     left: "Node | None" = None
     right: "Node | None" = None
+    parent: "Node | None" = None
 
     def put(self, other: "Node") -> int:
         if other.rank < self.rank:
             if not self.left:
                 self.left = other
                 other.level = self.level + 1
+                other.parent = self
                 return self.level + 1
             else:
                 return self.left.put(other)
@@ -34,6 +36,7 @@ class Node:
             if not self.right:
                 self.right = other
                 other.level = self.level + 1
+                other.parent = self
                 return self.level + 1
             else:
                 return self.right.put(other)
@@ -45,6 +48,15 @@ class Node:
             left = self.left.get(level) if self.left else ''
             right = self.right.get(level) if self.right else ''
             return left+right
+
+    def collect_lvl(self, levels, curr_lvl):
+        levels.setdefault(curr_lvl, 0)
+        levels[curr_lvl] += 1
+        self.level = curr_lvl
+        if self.left:
+            self.left.collect_lvl(levels, curr_lvl+1)
+        if self.right:
+            self.right.collect_lvl(levels, curr_lvl+1)
 
 
 def load1(filename) -> list[Instr]:
@@ -121,6 +133,49 @@ def task2(data):
             a, b = nodes[instr.id]
             a.rank, a.value, b.rank, b.value = b.rank, b.value, a.rank, a.value
 
+    max_l_level = max(l_levels, key=l_levels.get)
+    max_r_level = max(r_levels, key=r_levels.get)
+    return left_tree.get(max_l_level) + right_tree.get(max_r_level)
+
+
+
+def task3(data):
+    inst = data[0]
+    left_tree = Node(value=inst.left_id, rank=inst.left_rank)
+    right_tree = Node(value=inst.right_id, rank=inst.right_rank)
+    nodes = {}
+    nodes[inst.id] = (left_tree, right_tree)
+    for instr in data[1:]:
+        if instr.instr == 'ADD':
+            left = Node(value=instr.left_id, rank=instr.left_rank)
+            right = Node(value=instr.right_id, rank=instr.right_rank)
+            left_tree.put(left)
+            right_tree.put(right)
+            nodes[left.value] = left
+            nodes[right.value] = right
+            nodes[instr.id] = (left, right)
+        else:
+            a, b = nodes[instr.id]
+            if not a.parent and not b.parent:
+                left_tree, right_tree = right_tree, left_tree
+                continue
+
+            if a.parent:
+                if a.parent.left == a:
+                    a.parent.left = b
+                else:
+                    a.parent.right = b
+            if b.parent:
+                if b.parent.left == b:
+                    b.parent.left = a
+                else:
+                    b.parent.right = a
+            a.parent, b.parent = b.parent, a.parent
+
+    l_levels = {}
+    left_tree.collect_lvl(l_levels, 0)
+    r_levels = {}
+    right_tree.collect_lvl(r_levels, 0)
     max_l_level = max(l_levels, key=l_levels.get)
     max_r_level = max(r_levels, key=r_levels.get)
     return left_tree.get(max_l_level) + right_tree.get(max_r_level)
