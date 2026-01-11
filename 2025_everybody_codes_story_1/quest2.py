@@ -21,19 +21,30 @@ class Node:
     left: "Node | None" = None
     right: "Node | None" = None
 
-    def put(self, other: "Node"):
+    def put(self, other: "Node") -> int:
         if other.rank < self.rank:
             if not self.left:
                 self.left = other
                 other.level = self.level + 1
+                return self.level + 1
             else:
-                self.left.put(other)
+                return self.left.put(other)
         elif other.rank > self.rank:
             if not self.right:
                 self.right = other
                 other.level = self.level + 1
+                return self.level + 1
             else:
-                self.right.put(other)
+                return self.right.put(other)
+
+    def get(self, level: int) -> str:
+        if self.level == level:
+            return self.id
+        else:
+            left = self.left.get(level) if self.left else ''
+            right = self.right.get(level) if self.right else ''
+            return left+right
+
 
 
 def load(filename) -> list[Instr]:
@@ -49,13 +60,21 @@ def task1(data):
     inst = data[0]
     left_tree = Node(id=inst.left_id, rank=inst.left_rank)
     right_tree = Node(id=inst.right_id, rank=inst.right_rank)
+    l_levels = {}
+    r_levels = {}
     for instr in data[1:]:
         left = Node(id=instr.left_id, rank=instr.left_rank)
         right = Node(id=instr.right_id, rank=instr.right_rank)
-        left_tree.put(left)
-        right_tree.put(right)
+        lvl = left_tree.put(left)
+        l_levels.setdefault(lvl, 0)
+        l_levels[lvl] += 1
+        lvl = right_tree.put(right)
+        r_levels.setdefault(lvl, 0)
+        r_levels[lvl] += 1
 
-    print(left_tree)
+    max_l_level = max(l_levels, key=l_levels.get)
+    max_r_level = max(r_levels, key=r_levels.get)
+    return left_tree.get(max_l_level) + right_tree.get(max_r_level)
 
 
 app = AdventDay()
