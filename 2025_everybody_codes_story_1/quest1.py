@@ -56,5 +56,37 @@ def task2(data):
     return max([eni_for_note2(x) for x in data])
 
 
+def eni3(n, exp, mod):
+    results = []
+    visited = {}
+    cycle_start = 0
+    for i in range(1, exp):
+        curr = pow(n, i, mod)
+        if curr in visited:
+            cycle_start = visited[curr]
+            break
+        visited[curr] = i-1
+        results.append(curr)
+        i += 1
+    cycle_length = len(results) - cycle_start
+    cycles = (exp - cycle_start) // cycle_length
+    remainder = (exp - cycle_start) % cycle_length
+    pre = sum(results[:cycle_start])
+    cycle = cycles*sum(results[cycle_start:])
+    post = sum(results[cycle_start:(cycle_start+remainder)])
+    return pre + cycle + post
+
+
+def eni_for_note3(note: Note) -> int:
+    result = eni3(note.a, note.x, note.m)
+    result += eni3(note.b, note.y, note.m)
+    result += eni3(note.c, note.z, note.m)
+    return result
+
+
+def task3(data):
+    return max([eni_for_note3(x) for x in data])
+
+
 app = AdventDay()
 app.run()
