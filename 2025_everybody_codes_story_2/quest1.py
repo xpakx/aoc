@@ -25,16 +25,39 @@ def process(start: tuple[int, int], board: list[str], instr: list[int]) -> int:
     return pos[1]
 
 
+def drop(i: int, board: list[str], instr: list[int]) -> int:
+    start = (0, 2*i)
+    end = process(start, board, instr)
+
+    start = i + 1
+    end = end // 2 + 1
+    coins = max(0, (end * 2) - start)
+    # print('   ', start, end, coins)
+    return coins
+
+
 def task1(board: list[str], instructions: list[list[int]]):
     coins = 0
     for i, instr in enumerate(instructions):
-        start = (0, 2*i)
-        end = process(start, board, instr)
+        coins += drop(i, board, instr)
+    print(board)
+    print(instructions)
+    return coins
 
-        start = i + 1
-        end = end // 2 + 1
-        coins += max(0, (end * 2) - start)
-        print(start, end, coins)
+
+def task2(board: list[str], instructions: list[list[int]]):
+    coins = 0
+    for instr in instructions:
+        max_coins = 0
+        slot = 0
+        for i in range((len(board[0])+1)//2):
+            curr_coins = drop(i, board, instr)
+            # print("   ", i+1, curr_coins)
+            if curr_coins > max_coins:
+                max_coins = curr_coins
+                slot = i+1
+        coins += max_coins
+        print(slot, max_coins)
     print(board)
     print(instructions)
     return coins
