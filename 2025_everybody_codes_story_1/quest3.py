@@ -49,5 +49,9 @@ def task2(data: list[Snail]):
     return days
 
 
+def task3(data: list[Snail]):
+    return task2(data)
+
+
 app = AdventDay()
 app.run()
