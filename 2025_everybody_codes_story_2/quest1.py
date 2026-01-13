@@ -60,9 +60,7 @@ def task2(board: list[str], instructions: list[list[int]]):
 def finished(values: dict[tuple[int, int], int], state: tuple[int]):
     seen = 0
     for i in range(6):
-        if state[i] == 0:
-            return False
-        mask = 1 << state[i]-1
+        mask = 1 << state[i]
         if seen & mask != 0:
             return False
         seen |= mask
@@ -71,19 +69,19 @@ def finished(values: dict[tuple[int, int], int], state: tuple[int]):
 
 def find_min(values: dict[tuple[int, int], int], slots_len: int):
     state = tuple([0] * 6)
-    queue = [(0, state)]
+    start_coins = sum(values.get((0, i), 0) for i in range(6))
+    queue = [(start_coins, state)]
     visited = set()
     visited.add(state)
     while queue:
         coins, state = heapq.heappop(queue)
         if finished(values, state):
+            print(state)
             return coins
         for i in range(6):
             next_state = tuple([x if j != i else x+1 for j, x in enumerate(state)])
-            if next_state[i] > slots_len:
-                continue
-            old = values.get((state[i], i), 0)
-            new = values.get((next_state[i], i), 0)
+            old = values.get((state[i], i))
+            new = values.get((next_state[i], i))
             next_coins = coins - old + new
             if next_state in visited:
                 continue
@@ -97,7 +95,7 @@ def task3(board: list[str], instructions: list[list[int]]):
     slots = (len(board[0])+1) // 2
     for slot in range(slots):
         for instr_id, instr in enumerate(instructions):
-            values[(slot+1, instr_id)] = drop(slot, board, instr)
+            values[(slot, instr_id)] = drop(slot, board, instr)
     print(slots)
     print(values)
     return find_min(values, slots)
