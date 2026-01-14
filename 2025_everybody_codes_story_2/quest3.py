@@ -2,6 +2,7 @@ from utils.loader import get_file, get_file_instr
 from utils.parser import parse
 from utils.runner import AdventDay
 from dataclasses import dataclass
+from collections import defaultdict
 
 
 @dataclass
@@ -54,7 +55,7 @@ def task1(dices: list[Dice]) -> int:
     return roll_number
 
 
-def load(filename) -> tuple[list[Dice], list[int]]:
+def load2(filename) -> tuple[list[Dice], list[int]]:
     data, instr = get_file_instr(filename, split_first_by='\n')
     dices = parse(Dice, "{id}: faces=[{faces}] seed={seed}", data,
                   list_separator=',')
@@ -102,6 +103,57 @@ def task2(dices: list[Dice], racetrack: list[int]) -> int:
     result.sort()
     result = [str(p[1]) for p in result]
     return ','.join(result)
+
+
+def load3(filename) -> tuple[list[Dice], list[int]]:
+    data, instr = get_file_instr(filename,
+                                 split_first_by='\n',
+                                 split_second_by='\n'
+                                 )
+    dices = parse(Dice, "{id}: faces=[{faces}] seed={seed}", data,
+                  list_separator=',')
+    return dices, [[int(x) for x in list(row)] for row in instr]
+
+
+def get_possible_paths(dice: Dice, racetrack: list[list[int]]):
+    dice.reset()
+    roll_number = 1
+    board_map = defaultdict(set)
+    for row, line in enumerate(racetrack):
+        for col, cell in enumerate(line):
+            board_map[cell].add((row, col))
+    board_map = dict(board_map)
+
+    dice.roll(roll_number)
+    dice.update_pulse(roll_number)
+    to_visit = board_map[dice.result()]
+    seen = defaultdict(set)
+    seen[dice.pulse] |= to_visit
+
+    while to_visit:
+        roll_number += 1
+        to_visit_ = set()
+        dice.roll(roll_number)
+        dice.update_pulse(roll_number)
+        available_pos = board_map[dice.result()]
+        for row, col in to_visit:
+            to_visit_ |= {(row, col), (row + 1, col), (row - 1, col), (row, col + 1), (row, col - 1)} & available_pos
+        to_visit = to_visit_
+        seen[dice.pulse] |= to_visit
+
+    visited = set()
+    for positions in seen.values():
+        visited |= positions
+    return visited
+
+
+def task3(dices: list[Dice], racetrack: list[list[int]]) -> int:
+    print(racetrack)
+    possible_paths = set()
+    for dice in dices:
+        die_possible_paths = get_possible_paths(dice, racetrack)
+        possible_paths |= die_possible_paths
+    return len(possible_paths)
 
 
 app = AdventDay()
