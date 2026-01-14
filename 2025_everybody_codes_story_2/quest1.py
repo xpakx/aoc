@@ -1,6 +1,7 @@
 from utils.loader import get_file_instr
 from utils.runner import AdventDay
 import heapq
+import random
 
 
 def load(filename) -> tuple[list[str], list[list[int]]]:
@@ -90,6 +91,31 @@ def find_min(values: dict[tuple[int, int], int], slots_len: int):
     assert False
 
 
+def find_max(values: dict[tuple[int, int], int], slots_len: int):
+    state = tuple([slots_len-1] * 6)
+    start_coins = sum(values.get((slots_len-1, i), 0) for i in range(6))
+    queue = [(-start_coins, state)]
+    visited = set()
+    visited.add(state)
+    while queue:
+        coins, state = heapq.heappop(queue)
+        if finished(values, state):
+            print(state)
+            return -coins
+        for i in range(6):
+            next_state = tuple([x if j != i else x-1 for j, x in enumerate(state)])
+            if next_state[i] < 0:
+                continue
+            old = values.get((state[i], i))
+            new = values.get((next_state[i], i))
+            next_coins = coins + old - new
+            if next_state in visited:
+                continue
+            visited.add(next_state)
+            heapq.heappush(queue, (next_coins, next_state))
+    assert False
+
+
 def task3(board: list[str], instructions: list[list[int]]):
     values = {}  # (insert_slot, instruction) -> coins
     slots = (len(board[0])+1) // 2
@@ -98,7 +124,26 @@ def task3(board: list[str], instructions: list[list[int]]):
             values[(slot, instr_id)] = drop(slot, board, instr)
     print(slots)
     print(values)
-    return find_min(values, slots)
+    min = 9999999
+    for _ in range(20):
+        tst = find_min(values, slots)
+        if tst < min:
+            min = tst
+        random.shuffle(instructions)
+        for slot in range(slots):
+            for instr_id, instr in enumerate(instructions):
+                values[(slot, instr_id)] = drop(slot, board, instr)
+
+    max = 0
+    for _ in range(20):
+        tst = find_max(values, slots)
+        if tst > max:
+            max = tst
+        random.shuffle(instructions)
+        for slot in range(slots):
+            for instr_id, instr in enumerate(instructions):
+                values[(slot, instr_id)] = drop(slot, board, instr)
+    return f'{min} {max}'
 
 
 app = AdventDay()
