@@ -2,6 +2,7 @@ from utils.loader import get_file
 from utils.runner import AdventDay
 from collections import Counter
 from math import lcm
+from functools import cache
 
 
 def load(filename):
@@ -62,6 +63,41 @@ def task2(wheels, nums):
     first = sum([coins[i] for i in range(0, remainder)])
     second = sum([coins[i] for i in range(remainder, cycle)])
     return first + quotient * (first + second)
+
+
+@cache
+def find_max_min(
+        wheels, nums, total, wheel_offset=0, pull_number=0
+):
+    line = ""
+    for dist, wheel in zip(nums, wheels):
+        pos = (pull_number*dist+wheel_offset) % len(wheel)
+        line += wheel[pos][0] + wheel[pos][2]
+    score = 0
+    if pull_number > 0:
+        score = sum(i-2 for i in Counter(line).values() if i > 2)
+    if total - pull_number > 0:
+        curr_max = 0
+        curr_min = float('inf')
+        for i in (-1, 0, 1):
+            r_max, r_min = find_max_min(
+                    wheels, nums, total,
+                    wheel_offset+i, pull_number+1)
+            if r_max > curr_max:
+                curr_max = r_max
+            if r_min < curr_min:
+                curr_min = r_min
+
+        return score + curr_max, score + curr_min
+    return score, score
+
+
+def task3(wheels, nums):
+    wheels = tuple([tuple(x) for x in wheels])
+    print(wheels)
+    print(nums)
+    max, min = find_max_min(wheels, tuple(nums), 256)
+    return f"{max} {min}"
 
 
 app = AdventDay()
