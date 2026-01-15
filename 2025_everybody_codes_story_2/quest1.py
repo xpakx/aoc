@@ -68,54 +68,6 @@ def finished(values: dict[tuple[int, int], int], state: tuple[int]):
     return True
 
 
-def find_min(values: dict[tuple[int, int], int], slots_len: int):
-    state = tuple([0] * 6)
-    start_coins = sum(values.get((0, i), 0) for i in range(6))
-    queue = [(start_coins, state)]
-    visited = set()
-    visited.add(state)
-    while queue:
-        coins, state = heapq.heappop(queue)
-        if finished(values, state):
-            print(state)
-            return coins
-        for i in range(6):
-            next_state = tuple([x if j != i else x+1 for j, x in enumerate(state)])
-            old = values.get((state[i], i))
-            new = values.get((next_state[i], i))
-            next_coins = coins - old + new
-            if next_state in visited:
-                continue
-            visited.add(next_state)
-            heapq.heappush(queue, (next_coins, next_state))
-    assert False
-
-
-def find_max(values: dict[tuple[int, int], int], slots_len: int):
-    state = tuple([slots_len-1] * 6)
-    start_coins = sum(values.get((slots_len-1, i), 0) for i in range(6))
-    queue = [(-start_coins, state)]
-    visited = set()
-    visited.add(state)
-    while queue:
-        coins, state = heapq.heappop(queue)
-        if finished(values, state):
-            print(state)
-            return -coins
-        for i in range(6):
-            next_state = tuple([x if j != i else x-1 for j, x in enumerate(state)])
-            if next_state[i] < 0:
-                continue
-            old = values.get((state[i], i))
-            new = values.get((next_state[i], i))
-            next_coins = coins + old - new
-            if next_state in visited:
-                continue
-            visited.add(next_state)
-            heapq.heappush(queue, (next_coins, next_state))
-    assert False
-
-
 def task3(board: list[str], instructions: list[list[int]]):
     values = {}  # (insert_slot, instruction) -> coins
     slots = (len(board[0])+1) // 2
@@ -124,26 +76,30 @@ def task3(board: list[str], instructions: list[list[int]]):
             values[(slot, instr_id)] = drop(slot, board, instr)
     print(slots)
     print(values)
-    min = 9999999
-    for _ in range(20):
-        tst = find_min(values, slots)
-        if tst < min:
-            min = tst
-        random.shuffle(instructions)
-        for slot in range(slots):
-            for instr_id, instr in enumerate(instructions):
-                values[(slot, instr_id)] = drop(slot, board, instr)
 
-    max = 0
-    for _ in range(20):
-        tst = find_max(values, slots)
-        if tst > max:
-            max = tst
-        random.shuffle(instructions)
-        for slot in range(slots):
-            for instr_id, instr in enumerate(instructions):
-                values[(slot, instr_id)] = drop(slot, board, instr)
-    return f'{min} {max}'
+    dp_min = [1 << 31] * (1 << slots)
+    dp_max = [0] * (1 << slots)
+    dp_min[0] = dp_max[0] = 0
+    to_check = {0}
+    for i, instr in enumerate(instructions):
+        to_check_new = set()
+        for start_slot in range(slots):
+            for pos in to_check:
+                pos_new = pos | (1 << start_slot)
+                if pos_new != pos:
+                    dp_min[pos_new] = min(
+                            dp_min[pos_new],
+                            dp_min[pos] + values[(start_slot, i)])
+                    dp_max[pos_new] = max(
+                            dp_max[pos_new],
+                            dp_max[pos] + values[(start_slot, i)])
+                    to_check_new.add(pos_new)
+        to_check = to_check_new
+
+    ans_min = min(dp_min[pos] for pos in to_check)
+    ans_max = max(dp_max[pos] for pos in to_check)
+
+    return f'{ans_min} {ans_max}'
 
 
 app = AdventDay()
